@@ -1,0 +1,133 @@
+/**
+Napisati program koji prvo pročita koliko redaka ima datoteka, tj. koliko ima studenata
+zapisanih u datoteci. Nakon toga potrebno je dinamički alocirati prostor za niz struktura
+studenata (ime, prezime, bodovi) i učitati iz datoteke sve zapise. Na ekran ispisati ime,
+prezime,apsolutni i relativni broj bodova.
+Napomena: Svaki redak datoteke sadrži ime i prezime studenta, te broj bodova na kolokviju.
+relatvan_br_bodova = br_bodova/max_br_bodova*100
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKADATOTEKE -1
+#define GRESKAALOKACIJE -2
+
+struct Student {
+	char ime[128];
+	char prezime[128];
+	int brBodova;
+};
+
+void Ispis(Student*);
+void Ucitavanje(Student*, FILE*);
+int StvaranjeStrukture(FILE*,int);
+FILE * Otvaranjedatoteke(FILE*);
+int BrojanjeStudenata(FILE*);
+
+int main()
+{
+	FILE* fp = NULL;
+	int succ = 0;
+	int brStudenata = 0;
+
+	brStudenata = BrojanjeStudenata(fp); //funckija za brojanje studenata
+	if (brStudenata == GRESKAALOKACIJE || brStudenata == GRESKADATOTEKE)
+		return brStudenata;
+	printf("Broj studenata je: %d\n", brStudenata);
+
+	succ = StvaranjeStrukture(fp, brStudenata); // funkcija za ispis studenata 
+	if (succ == GRESKAALOKACIJE || succ == GRESKADATOTEKE)
+		return succ;
+
+	return 0;
+}
+int StvaranjeStrukture(FILE* fp,int n)
+{
+	struct Student *s;
+	int i;
+
+	s = (Student*)malloc(n * sizeof(Student)); //dinamicka alokacija strukture student
+	if (s == NULL)
+		return GRESKAALOKACIJE;
+
+	fp = Otvaranjedatoteke(fp); // otvaramo datoteku
+	if (fp == NULL)
+		return GRESKADATOTEKE;
+	
+	for (i = 0; i < n; i++)
+	{
+		Ucitavanje(s + i, fp);
+	}
+	for (i = 0; i < n; i++)
+	{
+		Ispis(s + i);
+	}
+	fclose(fp);
+	return 0;
+}
+
+void Ucitavanje(Student* s, FILE* fp) // ucitavanje svake linije
+{
+	fscanf(fp, "%d %s %s",&s->brBodova, s->ime, s->prezime);
+}
+
+void Ispis(Student* s) // ispisivanje svakog studenta
+{
+	printf("%d %s %s %.2f\n",s->brBodova,s->ime,s->prezime,(float)(s->brBodova/60.0)*100.0); 
+}
+
+FILE* Otvaranjedatoteke(FILE* fp) //unos imena datoteke i otvaranje iste
+{
+	char* ime = NULL;
+
+	ime = (char*)malloc(BUFFER * sizeof(char));
+	if (ime == NULL) //ako je pogreska alokacije
+	{
+		printf("Pogreska alokacije\n");
+		return NULL;
+	}
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", ime);
+	if (strlen(ime)==NULL) // ako ime nije uneseno
+	{
+		printf("Ime nije uneseno\n");
+		return NULL;
+	}
+		
+	strcat(ime, ".txt");
+
+	fp = fopen(ime, "r");
+	if (fp == NULL) //ako datoteka nije otvorena(ne postoji)
+	{
+		printf("datoteka nije nadena\n");
+		return NULL;
+	}
+	return fp;
+}
+
+int BrojanjeStudenata(FILE* fp) //brojanje koliko je studenata uneseno u datoteku
+{
+	int br = 0;
+	char* line = NULL;
+
+	line = (char*)malloc(BUFFER * sizeof(char));
+	if (line == NULL)
+		return GRESKAALOKACIJE;
+
+	fp = Otvaranjedatoteke(fp); // pozivanje funkcije da otvori datoteku
+	if (fp == NULL)
+		return GRESKADATOTEKE;
+	
+	while (!feof(fp))
+	{
+		fgets(line, BUFFER, fp);
+		br++;
+	}
+	fclose(fp);
+	return br;
+}

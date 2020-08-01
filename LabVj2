@@ -1,0 +1,186 @@
+/*Definirati strukturu osoba(ime, prezime, godina rođenja) i napisati program koji :
+a) dinamički dodaje novi element na početak liste,
+b) ispisuje listu,
+c) dinamički dodaje novi element na kraj liste,
+d) pronalazi element u listi(po prezimenu),
+e) briše određeni element iz liste,
+U zadatku se ne smiju koristiti globalne varijable.*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define GRESKAALOKACIJE -1
+#define BUFFER 1024
+#define NEPOSTOJI -2
+
+typedef struct student * Student;
+struct student {
+	char* ime;
+	char* prezime;
+	int godina;
+	Student Next;
+};
+int BrisiElement(Student, char*);
+Student PronadiElement(Student,char*);
+int UnosNaKraj(Student);
+void Upit();
+Student StvaranjeCvora();
+int UnosNaPocetak(Student);
+void Ispis(Student);
+
+int main()
+{
+	char c;
+	char* prez;
+	Student st;
+	struct student stud;
+	stud.Next = NULL;
+	int succ = 0;
+
+	st = (Student)malloc(sizeof(struct student));
+	if (st == NULL)
+		return GRESKAALOKACIJE;
+
+	while (1)
+	{
+		Upit();
+		scanf(" %c", &c);
+
+		switch (toupper(c))
+		{
+
+		case 'A':
+			succ = UnosNaPocetak(&stud);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+
+		case 'B':
+			succ = UnosNaKraj(&stud);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+
+		case 'C':
+			Ispis(stud.Next);
+			break;
+
+		case 'D':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+			printf("Koje prezime zelite naci?\n");
+			scanf("%s",prez);
+
+			st = PronadiElement(&stud,prez);
+			if (st == NULL)
+				return NEPOSTOJI;
+			printf("Trazili ste studenta: %s %s %d", st->ime, st->prezime, st->godina);
+			break;
+		case 'E':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+
+			printf("Koje prezime zelite naci?\n");
+			scanf("%s", prez);
+
+			succ = BrisiElement(&stud, prez);
+			if (succ == NEPOSTOJI)
+				return succ;
+			break;
+
+		default:
+			printf("Nije uneseno pravo slovo\n");
+		}
+		printf("Da li zelite novu akciju?(N za izlaz)");
+		scanf(" %c",&c);
+		if (toupper(c) == 'N')
+			break;
+	}
+	return 0;
+}
+
+Student StvaranjeCvora()
+{
+	Student nova;
+	char* Ime = NULL;
+	char *Prezime = NULL;
+
+	nova = (Student)malloc(sizeof(struct student));
+	Ime = (char*)malloc(BUFFER * sizeof(char));
+	Prezime=(char*)malloc(BUFFER * sizeof(char));
+	
+	printf("Unesite ime, prezime i godinu rodenja\n");
+	scanf("%s %s %d", Ime, Prezime, &nova->godina);
+	nova->ime = Ime;
+	nova->prezime = Prezime;
+	nova->Next = NULL;
+
+	return nova;
+}
+int UnosNaPocetak(Student s)
+{
+	Student temp;
+
+	temp = StvaranjeCvora();
+	if (temp == NULL)
+		return GRESKAALOKACIJE;
+
+	temp->Next = s->Next;
+	s->Next = temp;
+	
+	return 0;
+}
+void Ispis(Student s)
+{
+	while (s != NULL)
+	{
+		printf("%s %s %d\n", s->ime, s->prezime, s->godina);
+		s = s->Next;
+	}
+}
+void Upit()
+{
+	printf("Koju akciju zelite izvesti?\n A = postavi cvor na pocetak\n B = postavi cvor na kraj\n C = ispis liste\n D = trazenje elementa po prezimenu\n E = brisanje odredenog elementa\n");
+}
+int UnosNaKraj(Student s)
+{
+	Student temp;
+
+	temp = StvaranjeCvora();
+	if (temp == NULL)
+		return GRESKAALOKACIJE;
+
+	while (s->Next != NULL)
+		s = s->Next;
+	s->Next = temp;
+
+	return 0;
+}
+Student PronadiElement(Student s, char* prez)
+{
+	s = s->Next;
+	while (s!= NULL && strcmp(s->prezime,prez)!=0)
+		s = s->Next;
+	if (NULL == s) return NULL;
+	return s;
+}
+int BrisiElement(Student s, char* prez)
+{
+	Student temp;
+	while (s->Next!= NULL && strcmp(s->Next->prezime, prez) != 0)
+	{
+		s = s->Next;
+	}
+	if (NULL == s) 
+		return NEPOSTOJI;
+	temp = s->Next;
+	s->Next = temp->Next;
+	free(temp);
+
+	return 0;
+}

@@ -1,0 +1,321 @@
+/**
+/*Definirati strukturu osoba(ime, prezime, godina rođenja) i napisati program koji :
+a) dinamički dodaje novi element na početak liste,
+b) ispisuje listu,
+c) dinamički dodaje novi element na kraj liste,
+d) pronalazi element u listi(po prezimenu),
+e) briše određeni element iz liste,
+U zadatku se ne smiju koristiti globalne varijable.
+Prethodnom zadatku dodati funkcije:
+a) dinamički dodaje novi element iza određenog elementa,
+b) dinamički dodaje novi element ispred
+određenog elementa,
+c) sortira listu po prezimenima osoba,
+d) upisuje listu u datoteku,
+e) čita listu iz datoteke.
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define GRESKAALOKACIJE -1
+#define BUFFER 1024
+#define NEPOSTOJI -2
+
+typedef struct student * Student;
+struct student {
+	char* ime;
+	char* prezime;
+	int godina;
+	Student Next;
+};
+int IspisIzDatoteke(Student);
+int UnosUDatoteku(Student);
+void Upit();
+void Ispis(Student);
+int DodajIza(Student, char*);
+int DodajIspred(Student, char*);
+int BrisiElement(Student, char*);
+int UnosNaKraj(Student);
+int UnosNaPocetak(Student);
+Student PronadiElement(Student, char*);
+Student StvaranjeCvora();
+
+int main()
+{
+	char c;
+	char* prez;
+	Student st;
+	struct student stud;
+	stud.Next = NULL;
+	int succ = 0;
+
+	st = (Student)malloc(sizeof(struct student));
+	if (st == NULL)
+		return GRESKAALOKACIJE;
+
+	while (1)
+	{
+		system("cls");
+		Upit();
+		scanf(" %c", &c);
+
+		switch (toupper(c))
+		{
+
+		case 'A':
+			succ = UnosNaPocetak(&stud);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+
+		case 'B':
+			succ = UnosNaKraj(&stud);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+
+		case 'C':
+			Ispis(stud.Next);
+			break;
+
+		case 'D':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+			printf("Koje prezime zelite naci?\n");
+			scanf("%s", prez);
+
+			st = PronadiElement(&stud, prez);
+			if (st == NULL)
+				return NEPOSTOJI;
+			printf("Trazili ste studenta: %s %s %d", st->ime, st->prezime, st->godina);
+			break;
+		case 'E':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+
+			printf("Koje prezime zelite naci?\n");
+			scanf("%s", prez);
+
+			succ = BrisiElement(&stud, prez);
+			if (succ == NEPOSTOJI)
+				return succ;
+			break;
+		case 'F':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+			printf("Iza kojeg prezimena zelite dodati cvor?");
+			scanf("%s", prez);
+
+			succ = DodajIza(&stud, prez);
+			if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+				return succ;;
+			break;
+		case 'G':
+			prez = (char*)malloc(BUFFER * sizeof(char));
+			if (prez == NULL)
+				return GRESKAALOKACIJE;
+			printf("Ispred kojeg prezimena zelite dodati cvor?\n");
+			scanf("%s", prez);
+
+			succ = DodajIza(&stud, prez);
+			if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+				return succ;
+			break;
+		case 'H':
+			succ = UnosUDatoteku(&stud);
+			if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+				return succ;
+			break;
+		case 'I':
+			succ = IspisIzDatoteke(&stud);
+			if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+				return succ;
+			break;
+				
+		default:
+			printf("Nije uneseno pravo slovo\n");
+		}
+		printf("Da li zelite novu akciju?(N za izlaz)");
+		scanf(" %c", &c);
+		if (toupper(c) == 'N')
+			break;
+	}
+	return 0;
+}
+
+Student StvaranjeCvora()
+{
+	Student nova;
+	char* Ime = NULL;
+	char *Prezime = NULL;
+
+	nova = (Student)malloc(sizeof(struct student));
+	nova->ime = (char*)malloc(BUFFER * sizeof(char));
+	nova->prezime = (char*)malloc(BUFFER * sizeof(char));
+
+	printf("Unesite ime, prezime i godinu rodenja\n");
+	scanf("%s %s %d", nova->ime, nova->prezime, &nova->godina);
+	nova->Next = NULL;
+
+	return nova;
+}
+int UnosNaPocetak(Student s)
+{
+	Student temp;
+
+	temp = StvaranjeCvora();
+	if (temp == NULL)
+		return GRESKAALOKACIJE;
+
+	temp->Next = s->Next;
+	s->Next = temp;
+
+	return 0;
+}
+void Ispis(Student s)
+{
+	while (s != NULL)
+	{
+		printf("%s %s %d\n", s->ime, s->prezime, s->godina);
+		s = s->Next;
+	}
+}
+void Upit()
+{
+	printf("Koju akciju zelite izvesti?\n A = postavi cvor na pocetak\n B = postavi cvor na kraj\n C = ispis liste\n D = trazenje elementa po prezimenu\n E = brisanje odredenog elementa\n");
+	printf("F = unos iza odredenog elementa\n G = unos ispred odredenog elementa\n H = unesi u datoteku\n I = ispisi iz datoteke\n");
+}
+int UnosNaKraj(Student s)
+{
+	Student temp;
+
+	temp = StvaranjeCvora();
+	if (temp == NULL)
+		return GRESKAALOKACIJE;
+
+	while (s->Next != NULL)
+		s = s->Next;
+	s->Next = temp;
+
+	return 0;
+}
+Student PronadiElement(Student s, char* prez)
+{
+	s = s->Next;
+	while (s != NULL && strcmp(s->prezime, prez) != 0)
+		s = s->Next;
+	if (NULL == s) return NULL;
+	return s;
+}
+int BrisiElement(Student s, char* prez)
+{
+	Student temp;
+	while (s->Next != NULL && strcmp(s->Next->prezime, prez) != 0)
+	{
+		s = s->Next;
+	}
+	if (NULL == s)
+		return NEPOSTOJI;
+	temp = s->Next;
+	s->Next = temp->Next;
+	free(temp);
+
+	return 0;
+}
+int DodajIza(Student s, char* prez)
+{
+	s = s->Next;
+	int succ;
+	while (s != NULL && strcmp(s->prezime, prez) != 0)
+		s = s->Next;
+
+	if (NULL == s)
+		return NEPOSTOJI;
+
+	succ = UnosNaPocetak(s);
+	if (succ == GRESKAALOKACIJE)
+		return GRESKAALOKACIJE;
+	return 0;
+}
+int DodajIspred(Student s, char* prez)
+{
+	int succ;
+	while (s->Next != NULL && strcmp(s->Next->prezime, prez) != 0)
+		s = s->Next;
+	if (NULL == s)
+		return NEPOSTOJI;
+
+	succ = UnosNaPocetak(s);
+	if (succ == GRESKAALOKACIJE)
+		return GRESKAALOKACIJE;
+	return 0;
+}
+int UnosUDatoteku(Student s)
+{
+	FILE * fp = NULL;
+	char *imeDatoteke = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesi ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "w");
+	if (fp == NULL)
+		return NEPOSTOJI;
+	s = s->Next;
+	while (s != NULL)
+	{
+		fprintf(fp, "%s %s %d\n", s->ime, s->prezime, s->godina);
+		s = s->Next;
+	}
+	fclose(fp);
+
+	return 0;
+}
+int IspisIzDatoteke(Student s)
+{
+	Student q;
+	FILE * fp = NULL;
+	char *imeDatoteke = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+	q = (Student)malloc(sizeof(struct student));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+	q->ime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->ime == NULL)
+		return GRESKAALOKACIJE;
+	q->prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->prezime == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesi ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s %s %d", q->ime, q->prezime, &q->godina);
+		printf("%s %s %d\n", q->ime, q->prezime, q->godina);
+		q->Next = s->Next;
+		s->Next = q;
+	}
+	fclose(fp);
+	return 0;
+}

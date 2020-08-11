@@ -1,0 +1,157 @@
+/****
+/*
+Napisati program koji iz datoteke čita postfiks izraz i zatim korištenjem stoga računa
+rezultat. Stog je potrebno realizirati preko vezane liste.
+*/
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+#define NEMA -3
+
+typedef struct cvor* Stog;
+struct cvor {
+	int el;
+	Stog Next;
+};
+
+int CitanjeIzDatoteke(Stog);
+int PopSaStoga(Stog);
+int PushNaStog(Stog, int);
+Stog NoviCvorStoga(Stog);
+bool DaLiJeBroj(char*, int*);
+
+int main()
+{
+	struct cvor stog;
+	stog.Next = NULL;
+	int rezultat;
+
+	rezultat = CitanjeIzDatoteke(&stog);
+	if (rezultat == GRESKAALOKACIJE || rezultat == NEMA || rezultat == NEPOSTOJI)
+		return rezultat;
+	printf("Rezultat je: %d", rezultat);
+
+	return 0;
+}
+int CitanjeIzDatoteke(Stog p)
+{
+	char *imeDatoteke = NULL;
+	char *str = NULL;
+	FILE* fp = NULL;
+	Stog temp;
+	int succ;
+	int z, a, b, broj, rez;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	str = (char*)malloc(BUFFER * sizeof(char));
+	if (str == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s", str);
+		z = DaLiJeBroj(str, &broj);
+		if (z == 1)
+		{
+			succ = PushNaStog(p, broj);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+		}
+		else
+		{
+			a = PopSaStoga(p);
+			if (a == NEMA)
+				return a;
+
+			b = PopSaStoga(p);
+			if (b == NEMA)
+				return b;
+
+			if (strcmp(str, "+") == 0)
+			{
+				succ = PushNaStog(p, a + b);
+				if (succ == GRESKAALOKACIJE)
+					return succ;
+			}
+			else if (strcmp(str, "-") == 0)
+			{
+				succ = PushNaStog(p, a - b);
+				if (succ == GRESKAALOKACIJE)
+					return succ;
+			}
+			else if (strcmp(str, "*") == 0)
+			{
+				succ = PushNaStog(p, a * b);
+				if (succ == GRESKAALOKACIJE)
+					return succ;
+			}
+		}
+	}
+	rez = PopSaStoga(p);
+	fclose(fp);
+	return rez;
+}
+bool DaLiJeBroj(char* str, int* a)
+{
+	int y;
+	y = sscanf(str, "%d", a);
+	return (y == 0 || y == EOF || y != 1) ? 0 : 1;
+}
+
+int PopSaStoga(Stog s)
+{
+	int x;
+	if (s->Next == NULL)
+		return NEMA;
+
+	Stog temp = s->Next;
+	s->Next = temp->Next;
+	x = temp->el;
+
+	free(temp);
+
+	return x;
+}
+int PushNaStog(Stog s,int x)
+{
+	Stog nova = NULL;
+	int succ;
+
+	nova = NoviCvorStoga(nova);
+	if (nova == NULL)
+		return GRESKAALOKACIJE;
+
+	nova->el = x;
+
+	nova->Next = s->Next;
+	s->Next = nova;
+
+	return 0;
+
+}
+Stog NoviCvorStoga(Stog nova)
+{
+	nova = (Stog)malloc(sizeof(struct cvor));
+	if (nova == NULL)
+		return NULL;
+
+	nova->Next = NULL;
+
+	return nova;
+}

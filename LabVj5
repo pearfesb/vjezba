@@ -1,0 +1,194 @@
+/**
+Za dvije sortirane liste L1 i L2 (mogu se pročitati iz datoteke ili unijeti ručno, bitno je
+samo da su sortirane), napisati program koji stvara novu vezanu listu tako da računa:
+a) L1L2,
+b) L1L2.
+Liste osim pokazivača na slijedeću strukturu imaju i jedan cjelobrojni element, po
+kojem su sortirane.
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+#define NEMA -3
+
+
+typedef struct cvor* Lista;
+struct cvor {
+	int br;
+	Lista Next;
+};
+
+int Presjek(Lista, Lista, Lista);
+int Unija(Lista, Lista, Lista);
+int CitanjeIzDatoteke(Lista);
+int SortiraniUnos(Lista, Lista);
+void Ispis(Lista);
+
+int main()
+{
+	struct cvor L1;
+	struct cvor L2;
+	struct cvor rez1;
+	struct cvor rez2;
+	L1.Next = NULL;
+	L2.Next = NULL;
+	rez1.Next = NULL;
+	rez2.Next = NULL;
+	int succ;
+
+	succ = CitanjeIzDatoteke(&L1);
+	if (succ == GRESKAALOKACIJE || succ == NEMA || succ == NEPOSTOJI)
+		return succ;
+
+	succ = CitanjeIzDatoteke(&L2);
+	if (succ == GRESKAALOKACIJE || succ == NEMA || succ == NEPOSTOJI)
+		return succ;
+
+	printf("Prva lista:\n");
+	Ispis(L1.Next);
+	printf("\nDruga lista\n");
+	Ispis(L2.Next);
+
+	succ = Unija(L1.Next, L2.Next, &rez1);
+	if (succ == GRESKAALOKACIJE || succ == NEMA)
+		return succ;
+
+	printf("\nUnija listi:\n");
+	Ispis(rez1.Next);
+
+	succ = Presjek(L1.Next, L2.Next, &rez2);
+	if (succ == GRESKAALOKACIJE || succ == NEMA)
+		return succ;
+
+	printf("\nPresjek listi:\n");
+	Ispis(rez2.Next);
+
+	return 0;
+}
+
+int CitanjeIzDatoteke(Lista p)
+{
+	char *imeDatoteke = NULL;
+	FILE* fp = NULL;
+	Lista temp;
+	int succ;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+
+	while (!feof(fp))
+	{
+		temp = (Lista)malloc(sizeof(struct cvor));
+		if (temp == NULL)
+			return GRESKAALOKACIJE;
+		temp->Next = NULL;
+
+		fscanf(fp, "%d", &temp->br);
+		succ = SortiraniUnos(p, temp);
+		if (succ == NEMA)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int SortiraniUnos(Lista s, Lista temp)
+{
+	while (s->Next != NULL && s->Next->br > temp->br)
+		s = s->Next;
+	if (s->Next == NULL || s->Next->br != temp->br)
+	{
+		temp->Next = s->Next;
+		s->Next = temp;
+	}
+	if (NULL == s) return NEMA;
+	return 0;
+}
+
+void Ispis(Lista s)
+{
+	while (s != NULL)
+	{
+		printf("%d\n", s->br);
+		s = s->Next;
+	}
+}
+int Unija(Lista L1, Lista L2, Lista rez)
+{
+	Lista temp;
+	int succ;
+
+	while (L1 != NULL)
+	{
+		temp = (Lista)malloc(sizeof(struct cvor));
+		if (temp == NULL)
+			return GRESKAALOKACIJE;
+		temp->Next = NULL;
+
+		temp->br = L1->br;
+		succ = SortiraniUnos(rez, temp);
+		if (succ == NEMA)
+			return succ;
+
+		L1 = L1->Next;
+	}
+	while (L2 != NULL)
+	{
+		temp = (Lista)malloc(sizeof(struct cvor));
+		if (temp == NULL)
+			return GRESKAALOKACIJE;
+		temp->Next = NULL;
+
+		temp->br = L2->br;
+		succ = SortiraniUnos(rez, temp);
+		if (succ == NEMA)
+			return succ;
+
+		L2 = L2->Next;
+	}
+	return 0;
+
+}
+int Presjek(Lista L1, Lista L2, Lista rez)
+{
+	Lista temp;
+	Lista pocetak = L2;
+	int succ;
+
+	while (L1 != NULL)
+	{
+		while (L2 != NULL)
+		{
+			if (L1->br == L2->br)
+			{
+				temp = (Lista)malloc(sizeof(struct cvor));
+				if (temp == NULL)
+					return GRESKAALOKACIJE;
+				temp->Next = NULL;
+
+				temp->br = L2->br;
+				succ = SortiraniUnos(rez, temp);
+				if (succ == NEMA)
+					return succ;
+			}
+			L2 = L2->Next;
+		}
+		L1 = L1->Next;
+		L2 = pocetak;
+	}
+	return 0;
+}

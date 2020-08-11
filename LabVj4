@@ -1,0 +1,218 @@
+/*
+Napisati program za zbrajanje i množenje polinoma. Koeficijenti i eksponenti se
+čitaju iz datoteke.
+Napomena: Eksponenti u datoteci nisu nužno sortirani.*/
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+#define NEMA -3
+
+typedef struct cvor * Polinom;
+struct cvor {
+	int pot;
+	int koef;
+	Polinom Next;
+};
+
+int MnozenjePolinoma(Polinom, Polinom, Polinom);
+int ZbrajanjePolinoma(Polinom, Polinom,Polinom);
+void Ispis(Polinom);
+int SortiraniUnos(Polinom,Polinom);
+int CitanjeIzDatoteke(Polinom);
+
+int main()
+{
+	struct cvor p1;
+	struct cvor p2;
+	struct cvor rez1;
+	struct cvor rez2;
+
+	p1.Next = NULL;
+	p2.Next = NULL;
+	rez1.Next = NULL;
+	rez2.Next = NULL;
+
+	int succ;
+
+	succ = CitanjeIzDatoteke(&p1);
+	if (succ == GRESKAALOKACIJE || succ == NEMA || succ == NEPOSTOJI)
+		return succ;
+
+	succ = CitanjeIzDatoteke(&p2);
+	if (succ == GRESKAALOKACIJE || succ == NEMA || succ == NEPOSTOJI)
+		return succ;
+	printf("Prva lista je:\n");
+	Ispis(p1.Next);
+	printf("\nDruga lista je:\n");
+	Ispis(p2.Next);
+
+	succ = ZbrajanjePolinoma(p1.Next, p2.Next, &rez1);
+	if (succ == GRESKAALOKACIJE || succ == NEMA)
+		return succ;
+
+	printf("\nRezultat zbrajanja je: \n");
+	Ispis(rez1.Next);
+
+	succ = MnozenjePolinoma(p1.Next, p2.Next, &rez2);
+	if (succ == GRESKAALOKACIJE || succ == NEMA)
+		return succ;
+	printf("\nRezultat mnozenja je:\n");
+	Ispis(rez2.Next);
+
+	return 0;
+}
+int CitanjeIzDatoteke(Polinom p)
+{
+	char *imeDatoteke = NULL;
+	FILE* fp = NULL;
+	Polinom temp;
+	int succ;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+
+	while (!feof(fp))
+	{
+		temp = (Polinom)malloc(sizeof(struct cvor));
+		if (temp == NULL)
+			return GRESKAALOKACIJE;
+
+		fscanf(fp,"%d %d", &temp->pot, &temp->koef);
+		succ = SortiraniUnos(p, temp);
+		if (succ == NEMA)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+
+int SortiraniUnos(Polinom s, Polinom temp)
+{
+
+	while (s->Next != NULL && s->Next->pot >temp->pot)
+		s = s->Next;
+
+	if (s->Next!=NULL && s->Next->pot == temp->pot)
+		s->Next->koef += temp->koef;
+	else
+	{
+		temp->Next = s->Next;
+		s->Next = temp;
+	}
+	if (NULL == s) return NEMA;
+	return 0;
+}
+
+void Ispis(Polinom s)
+{
+	while (s != NULL)
+	{
+		printf("%d %d\n",s->pot,s->koef);
+		s = s->Next;
+	}
+}
+
+int ZbrajanjePolinoma(Polinom p1, Polinom p2, Polinom rez)
+{
+	Polinom temp = NULL;
+	int succ;
+
+	while (p1 != NULL && p2 != NULL)
+	{
+		if (p1->pot == p2->pot)
+		{
+			temp = (Polinom)malloc(sizeof(struct cvor));
+			if (temp == NULL)
+				return GRESKAALOKACIJE;
+
+			temp->pot = p1->pot;
+			temp->koef = p1->koef + p2->koef;
+			succ = SortiraniUnos(rez, temp);
+			if (succ == NEMA)
+				return succ;
+			p1 = p1->Next;
+			p2 = p2->Next;
+	
+		}
+		else if (p1->pot > p2->pot)
+		{
+			temp = (Polinom)malloc(sizeof(struct cvor));
+			if (temp == NULL)
+				return GRESKAALOKACIJE;
+
+			temp->koef = p1->koef;
+			temp->pot = p1->pot;
+			succ = SortiraniUnos(rez, temp);
+			if (succ == NEMA)
+				return succ;
+			p1 = p1->Next;
+		}
+		else 
+		{
+			temp = (Polinom)malloc(sizeof(struct cvor));
+			if (temp == NULL)
+				return GRESKAALOKACIJE;
+
+			temp->koef = p2->koef;
+			temp->pot = p2->pot;
+			succ = SortiraniUnos(rez, temp);
+			if (succ == NEMA)
+				return succ;
+			p2 = p2->Next;
+		}
+	}
+	if (p1 == NULL)
+		temp = p2;
+	else temp = p1;
+	while (temp != NULL)
+	{
+		succ = SortiraniUnos(rez, temp);
+		if (succ == NEMA)
+			return succ;
+		temp = temp->Next;
+	}
+	if (NULL == temp) return NEMA;
+	return 0;
+		
+}
+
+int MnozenjePolinoma(Polinom p1, Polinom p2, Polinom rez)
+{
+	Polinom temp;
+	Polinom pocetak = p2;
+	int succ;
+
+	while (p1 != NULL)
+	{
+		while (p2 != NULL)
+		{
+			temp = (Polinom)malloc(sizeof(struct cvor));
+			if (temp == NULL)
+				return GRESKAALOKACIJE;
+
+			temp->koef = p1->koef*p2->koef;
+			temp->pot = p1->pot + p2->pot;
+			succ = SortiraniUnos(rez, temp);
+			if (succ == NEMA)
+				return succ;
+			p2 = p2->Next;
+		}
+		p1 = p1->Next;
+		p2 = pocetak;
+	}
+	return 0;
+}

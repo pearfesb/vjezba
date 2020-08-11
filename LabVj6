@@ -1,0 +1,198 @@
+/****
+Napisati program koji pomoću vezanih listi simulira rad:
+a) stoga,
+b) reda.
+Napomena: Funkcija "push" sprema cijeli broj, slučajno generirani u opsegu od 10 -100
+***/
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define GRESKAALOKACIJE -1
+#define NEMA -3
+
+typedef struct cvor * Stog;
+struct cvor {
+	int br;
+	Stog Next;
+};
+
+typedef struct Cvor*Red;
+struct Cvor {
+	int br;
+	Red Next;
+};
+int PushNaStog(Stog);
+int PopSaStoga(Stog);
+int RandomBroj(int, int);
+Stog NoviCvorStoga(Stog);
+Red NoviCvorReda(Red);
+void IspisStoga(Stog);
+void IspisReda(Red);
+void Poruka();
+int PushNaRed(Red);
+int PopSaReda(Red);
+
+int main()
+{
+	struct cvor stog;
+	struct Cvor red;
+	stog.Next = NULL;
+	red.Next = NULL;
+	int succ;
+	char c;
+
+	while (1)
+	{ 
+		system("cls");
+		Poruka();
+		scanf(" %c", &c);
+		switch (toupper(c))
+		{
+		case 'A':
+			succ = PushNaStog(&stog);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+		case 'B':
+			succ = PopSaStoga(&stog);
+			if (succ == NEMA)
+				printf("Stog je prazan\n");
+			
+			break;
+		case 'C':
+			succ = PushNaRed(&red);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+			break;
+		case 'D':
+			succ = PopSaReda(&red);
+			if (succ == NEMA)
+				printf("Red je prazan\n");
+				
+			break;
+		case 'E':
+			printf("Ispis stoga:\n");
+			IspisStoga(stog.Next);
+			break;
+		case 'F':
+			printf("ispis reda:\n");
+			IspisReda(red.Next);
+			break;
+		default:
+			printf("Uneseno je krivo slovo");
+			break;
+		}
+		printf("Zelite li novu operaciju?\n");
+		scanf(" %c", &c);
+		if (c == 'N')
+			break;
+	}
+	
+	return 0;
+}
+
+int RandomBroj(int min, int max)
+{
+	return rand() % (max - min) + min;
+}
+int PushNaStog(Stog s)
+{
+	Stog nova = NULL;
+	int succ;
+
+	nova = NoviCvorStoga(nova);
+	if (nova == NULL)
+		return GRESKAALOKACIJE;
+
+	nova->Next = s->Next;
+	s->Next = nova;
+
+	return 0;
+
+}
+Stog NoviCvorStoga(Stog nova)
+{
+	nova = (Stog)malloc(sizeof(struct cvor));
+	if (nova == NULL)
+		return NULL;
+
+	nova->br = RandomBroj(10, 100);
+	nova->Next = NULL;
+
+	return nova;
+}
+void IspisStoga(Stog s)
+{
+	while (s != NULL)
+	{
+		printf("%d\n", s->br);
+		s = s->Next;
+	}
+}
+Red NoviCvorReda(Red nova)
+{
+	nova = (Red)malloc(sizeof(struct Cvor));
+	if (nova == NULL)
+		return NULL;
+
+	nova->br = RandomBroj(10, 100);
+	nova->Next = NULL;
+
+	return nova;
+}
+void IspisReda(Red s)
+{
+	while (s != NULL)
+	{
+		printf("%d\n", s->br);
+		s = s->Next;
+	}
+}
+int PopSaStoga(Stog s)
+{
+	if (s->Next == NULL)
+		return NEMA;
+	Stog temp = s->Next;
+	s->Next = temp->Next;
+	free(temp);
+	return 0;
+}
+void Poruka()
+{
+	printf("Koju operaciju zelite?\nA-push na stog\nB-skidanje sa stoga\nC-push u red\nD-skidanje s reda\nE-ispis stoga\nF-ispis reda\n");
+}
+int PushNaRed(Red r)
+{
+	Red nova = NULL;
+	int succ;
+
+	nova = NoviCvorReda(nova);
+	if (nova == NULL)
+		return GRESKAALOKACIJE;
+	while (r->Next != NULL)
+		r = r->Next;
+
+	nova->Next = r->Next;
+	r->Next = nova;
+
+	return 0;
+}
+int PopSaReda(Red r)
+{
+	if (r->Next == NULL)
+		return NEMA;
+	else
+	{
+		Red temp = r->Next;
+		r->Next = temp->Next;
+		free(temp);
+	}
+	return 0;
+
+
+
+}
+
+

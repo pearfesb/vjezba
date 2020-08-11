@@ -23,6 +23,15 @@ struct student {
 	int godina;
 	Student Next;
 };
+/**
+struct student{    
+	char *ime;
+	char *prezime;
+	int godina;
+	struct student * Next;
+}
+**/
+
 int BrisiElement(Student, char*);
 Student PronadiElement(Student,char*);
 int UnosNaKraj(Student);

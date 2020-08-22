@@ -12,7 +12,14 @@ drugoj sve riječi koje počinju suglasnikom. Riječi zapisane u datotekama mora
 
 #define BUFFER 1024
 #define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
 
+typedef struct Cvor *Lista;
+struct Cvor
+{
+	char *rijec;
+	Lista Next;
+};
 typedef struct cvor *Stablo;
 struct cvor {
 	char* rijec;
@@ -23,7 +30,10 @@ struct cvor {
 Stablo UcitajIzDatoteke(Stablo);
 Stablo UnosUStablo(Stablo, char*);
 void IspisIn(Stablo);
-int Pretrazivanje(Stablo, FILE *, FILE *);
+int Pretrazivanje(Stablo, Lista, Lista);
+int UcitajUDatoteku(Lista);
+void IspisListe(Lista);
+int UnosUListu(Lista, char*);
 
 
 int main()
@@ -31,15 +41,33 @@ int main()
 	Stablo S = NULL;
 	FILE *fp1 = NULL;
 	FILE *fp2 = NULL;
+	struct Cvor L1;
+	struct Cvor L2;
+	L1.Next = NULL;
+	L2.Next = NULL;
 	int succ;
-
 
 	S = UcitajIzDatoteke(S);
 	if (S == NULL)
 		return GRESKAALOKACIJE;
 	IspisIn(S);
 
-	succ = Pretrazivanje(S, fp1, fp2);
+	succ = Pretrazivanje(S, &L1, &L2);
+	if (succ == GRESKAALOKACIJE)
+		return succ;
+
+	succ = UcitajUDatoteku(L1.Next);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+
+	succ = UcitajUDatoteku(L2.Next);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+
+	printf("ispis samoglasnika\n");
+	IspisListe(L1.Next);
+	printf("\nIspis suglasnika\n");
+	IspisListe(L2.Next);
 
 	return 0;
 }
@@ -54,7 +82,7 @@ Stablo UcitajIzDatoteke(Stablo S)
 	if (imeDatoteke == NULL)
 		return NULL;
 
-	rijec= (char*)malloc(BUFFER * sizeof(char));
+	rijec = (char*)malloc(BUFFER * sizeof(char));
 	if (rijec == NULL)
 		return NULL;
 
@@ -68,8 +96,8 @@ Stablo UcitajIzDatoteke(Stablo S)
 		return NULL;
 	while (!feof(fp))
 	{
-		fscanf(fp, "%s",rijec);
-		S = UnosUStablo(S,rijec);
+		fscanf(fp, "%s", rijec);
+		S = UnosUStablo(S, rijec);
 		if (S == NULL)
 			return NULL;
 	}
@@ -90,7 +118,7 @@ Stablo UnosUStablo(Stablo S, char* rijec)
 		S->Desno = NULL;
 		S->Lijevo = NULL;
 	}
-	else if (strcmp(S->rijec,rijec) > 0)
+	else if (strcmp(S->rijec, rijec) > 0)
 		S->Lijevo = UnosUStablo(S->Lijevo, rijec);
 	else if (strcmp(S->rijec, rijec) < 0)
 		S->Desno = UnosUStablo(S->Desno, rijec);
@@ -107,32 +135,78 @@ void IspisIn(Stablo S)
 		IspisIn(S->Desno);
 	}
 }
-// ne radi
-int Pretrazivanje(Stablo S,FILE *fp1,FILE *fp2)
+int Pretrazivanje(Stablo S, Lista L1, Lista L2)
 {
 	if (S != NULL)
 	{
-		Pretrazivanje(S->Lijevo,fp1,fp2);
-		Pretrazivanje(S->Desno,fp1,fp2);
+		Pretrazivanje(S->Lijevo, L1, L2);
+		Pretrazivanje(S->Desno, L1, L2);
 
 		if (*S->rijec == 'a' || *S->rijec == 'e' || *S->rijec == 'i' || *S->rijec == 'o' || *S->rijec == 'u')
 		{
-			fp1 = fopen("samoglasnici.txt", "w");
-			if (fp1 == NULL)
-				return -2;
-			fprintf(fp1, "%s", S->rijec);
-			fclose(fp1);
+			int succ = UnosUListu(L1, S->rijec);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
 		}
 		else
 		{
-			fp2 = fopen("suglasnici.txt", "w");
-			if (fp2 == NULL)
-				return -2;
-			fprintf(fp2, "%s", S->rijec);
-			fclose(fp2);
+			int succ = UnosUListu(L2, S->rijec);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
 		}
-			
+
 	}
 	return 0;
-	
+
+}
+int UnosUListu(Lista L, char* rijec)
+{
+	Lista q = (Lista)malloc(sizeof(struct Cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+
+	q->rijec = (char*)malloc(BUFFER * sizeof(char));
+	if (q->rijec == NULL)
+		return GRESKAALOKACIJE;
+
+	strcpy(q->rijec, rijec);
+
+	while (L->Next != NULL && strcmp(L->Next->rijec, rijec) > 0)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+
+	return 0;
+}
+int UcitajUDatoteku(Lista L)
+{
+	char* imeDatoteke = NULL;
+	FILE* fp = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "w");
+	if (fp == NULL)
+		return NEPOSTOJI;
+	while (L!= NULL)
+	{
+		fprintf(fp, "%s\n", L->rijec);
+		L = L->Next;
+	}
+	fclose(fp);
+	return 0;
+}
+void IspisListe(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%s\n", L->rijec);
+		L = L->Next;
+	}
 }

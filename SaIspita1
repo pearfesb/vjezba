@@ -1,0 +1,158 @@
+/**
+Napisati program koji čita iz datoteke dio teksta, te kreira binarno stablo pretraživanja. Binarno stablo se
+kreira na način da se u njega upisuju sve različite riječi iz teksta koji je zapisan u datoteci s pripadajućim
+duljinama unesene riječi.
+struct _Cvor{char *rijec; int length; struct _Cvor *Left; struct _Cvor *Right;};
+Potrebno je izračunati prosječnu duljinu svake riječi zapisane u binarnom stablu.
+Napisati program koji iz tako kreiranog binarnog stabla u vezanu listu puni samo one riječi koje su dulje
+od prosječne duljine svih riječi, te ispisati tu vezanu listu.
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+
+typedef struct cvor *Stablo;
+struct cvor
+{
+	char* rijec;
+	int lenght;
+	Stablo Lijevo;
+	Stablo Desno;
+};
+
+typedef struct Cvor *Lista;
+struct Cvor {
+	char *rijec;
+	Lista Next;
+};
+
+Stablo UcitajIzDatoteke(Stablo,float*);
+Stablo UnosUStablo(Stablo, char*);
+int UnosUListu(Lista,Stablo,float);
+void Ispis(Lista);
+int main()
+{
+	Stablo S = NULL;
+	struct Cvor L;
+	L.Next = NULL;
+	float prosjek = 0.0;
+	int succ;
+
+	S= UcitajIzDatoteke(S,&prosjek);
+	if (prosjek == NEPOSTOJI || prosjek == GRESKAALOKACIJE)
+		return prosjek;
+
+	printf("%.2f", prosjek);
+
+	succ = UnosUListu(&L, S, prosjek);
+	if (succ == GRESKAALOKACIJE)
+		return succ;
+
+	Ispis(L.Next);
+
+	return 0;
+}
+Stablo UcitajIzDatoteke(Stablo S,float* prosjek)
+{
+	char *imeDatoteke = NULL;
+	FILE *fp = NULL;
+	char *string = NULL;
+	int zbroj = 0;
+	int br = 0;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return NULL;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s", string);
+		zbroj += strlen(string);
+		br++;
+		S = UnosUStablo(S, string);
+		if (S == NULL)
+			return NULL;
+
+	}
+	fclose(fp);
+	*prosjek = (float)zbroj / br;
+	return S;
+}
+Stablo UnosUStablo(Stablo S, char*string)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct cvor));
+		if (S == NULL)
+			return NULL;
+
+		S->rijec = (char*)malloc(BUFFER * sizeof(char));
+		if (S->rijec == NULL)
+			return NULL;
+
+		strcpy(S->rijec, string);
+		S->lenght = strlen(S->rijec);
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+	}
+	else if (strcmp(S->rijec, string) > 0)
+		S->Lijevo = UnosUStablo(S->Lijevo, string);
+	else if (strcmp(S->rijec, string) < 0)
+		S->Desno = UnosUStablo(S->Desno, string);
+	else
+		printf("Element vec postoji");
+	return S;
+}
+int UnosUListu(Lista L, Stablo S, float prosjek)
+{
+	if (S != NULL)
+	{
+		UnosUListu(L, S->Desno, prosjek);
+		UnosUListu(L, S->Lijevo, prosjek);
+
+		if (S->lenght >= prosjek)
+		{
+			Lista q = NULL;
+			q = (Lista)malloc(sizeof(struct Cvor));
+			if (q == NULL)
+				return GRESKAALOKACIJE;
+
+			q->rijec = (char*)malloc(BUFFER * sizeof(char));
+			if (q->rijec == NULL)
+				return GRESKAALOKACIJE;
+
+			strcpy(q->rijec, S->rijec);
+			while (L->Next!= NULL && strcmp(L->Next->rijec, q->rijec) != 0)
+				L = L->Next;
+			q->Next = L->Next;
+			L->Next = q;
+		}
+	}
+	return 0;
+}
+void Ispis(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%s", L->rijec);
+		L = L->Next;
+	}
+}

@@ -1,0 +1,90 @@
+/***
+Napisati program koji generira slučajne brojeve u opsegu od 50-80. Ukoliko je generirani broj paran
+sprema se u vezanu listu parnih brojeva i to u padajućem redoslijedu (od najvećeg prema najmanjem).
+Ukoliko je broj neparan sprema se u vezanu listu neparnih brojeva, također u padajućem redoslijedu. Niti
+jedna vezana lista ne smije sadržavati dva ista elementa. Unos traje sve dok obje liste ne sadrže 10
+elemenata. Treba ispisivati koji se broj generira i na kraju ispisati obje liste.
+
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+#define GRESKAALOKACIJE -1
+
+typedef struct cvor *Lista;
+struct cvor {
+	int el;
+	Lista Next;
+};
+
+int GeneriraniBroj(int, int);
+int UnosUListu(Lista, int, int*);
+void Ispis(Lista);
+int main()
+{
+	struct cvor L1;
+	struct cvor L2;
+	L1.Next = NULL;
+	L2.Next = NULL;
+	int broj;
+	int succ;
+	int brojanje1 = 0;
+	int brojanje2 = 0;
+
+	
+	while (brojanje1 < 10 || brojanje2 < 10)
+	{
+		broj = GeneriraniBroj(50, 80);
+		printf("Generiran je broj %d\n", broj);
+		if (broj % 2 == 0)
+		{
+			succ = UnosUListu(&L1, broj, &brojanje1);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+		}
+		else
+		{
+			succ = UnosUListu(&L2, broj, &brojanje2);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+		}
+	}
+	printf("Ispis prve liste\n");
+	Ispis(L1.Next);
+	printf("\nIspis druge liste\n");
+	Ispis(L2.Next);
+
+
+	return 0;
+}
+int GeneriraniBroj(int min, int max)
+{
+	return rand() % (max - min) + min;
+}
+int UnosUListu(Lista L, int x,int* broj)
+{
+	while (L->Next != NULL && L->Next->el > x)
+		L = L->Next;
+	if (L->Next==NULL || L->Next->el != x)
+	{
+		Lista q = (Lista)malloc(sizeof(struct cvor));
+		if (q == NULL)
+			return GRESKAALOKACIJE;
+		q->el = x;
+		q->Next = L->Next;
+		L->Next = q;
+		(*broj)++;
+	}
+	return 0;
+}
+void Ispis(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%d\n", L->el);
+		L = L->Next;
+	}
+}
+

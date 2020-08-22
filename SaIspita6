@@ -1,0 +1,118 @@
+/**
+Napisati program koji iz dvije datoteke (jedna sadrži ocjenu 1. kolokvija,a druga ocjenu 2. kolokvija) kreira
+vezanu listu studenata koji su položili ispit i ta se nova vezana lista slaže po ocjenama.
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+
+typedef struct cvor *Lista;
+struct cvor {
+	int ocjena;
+	Lista Next;
+};
+int UcitajIzDatoteke(Lista);
+int UnosUListu(Lista, int);
+void Ispis(Lista);
+int StvaranjeNove(Lista, Lista,Lista);
+int main()
+{
+	struct cvor L1;
+	struct cvor L2;
+	struct cvor L3;
+	L1.Next = NULL;
+	L2.Next = NULL;
+	L3.Next = NULL;
+	int succ;
+
+	succ = UcitajIzDatoteke(&L1);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+	succ = UcitajIzDatoteke(&L2);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+
+	printf("Ispis liste prvog kolokvija\n");
+	Ispis(L1.Next);
+	printf("\nIspis liste drugog kolokvija\n");
+	Ispis(L2.Next);
+
+	succ = StvaranjeNove(&L1, &L2, &L3);
+	if (succ == GRESKAALOKACIJE)
+		return succ;
+
+	printf("\nIspis konacne liste\n");
+	Ispis(L3.Next);
+
+	return 0;
+}
+int UcitajIzDatoteke(Lista L)
+{
+	char* imeDatoteke = NULL;
+	FILE* fp = NULL;
+	int ocjena;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke,".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+	while (!feof(fp))
+	{
+		fscanf(fp, "%d", &ocjena);
+		int succ = UnosUListu(L, ocjena);
+		if (succ == GRESKAALOKACIJE)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUListu(Lista L, int ocjena)
+{
+	Lista q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+	q->ocjena = ocjena;
+	while (L->Next != NULL)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+	return 0;
+}
+void Ispis(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%d\n", L->ocjena);
+		L = L->Next;
+	}
+}
+int StvaranjeNove(Lista L1, Lista L2,Lista L3)
+{
+	while (L1->Next != NULL && L2->Next != NULL)
+	{
+		if (L1->Next->ocjena > 1 && L2->Next->ocjena > 1)
+		{
+			int ocjena = (L1->Next->ocjena + L2->Next->ocjena) / 2;
+			int succ = UnosUListu(L3, ocjena);
+			if (succ == GRESKAALOKACIJE)
+				return succ;
+		}
+		L1 = L1->Next;
+		L2 = L2->Next;
+	}
+	return 0;
+}

@@ -1,0 +1,137 @@
+/**
+Napisati program koji iz datoteke čita podatke o broju bodova koje je jedan student dobio na ispitu
+(struct _student{char ime[128];char prezime[128];int broj_bodova; int relativni_broj_bodova;struct
+_student *left; ;struct _student right;}) i sprema ih u binarno stablo pretraživanja. (Napomena : 0 <
+broj_bodova <= 100). Ispisati binarno stablo na „inorder“ način.
+U tako kreiranom binarnom stablu potrebno je za svakog od studenata izračunati i relativan broj bodova
+po formuli: relativan_broj_bodova=( broj_bodova / MAX(broj_bodova) ). Ispisati binarno stablo na
+„preorder“ način.
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define MAX 100.0
+
+typedef struct cvor *Stablo;
+struct cvor {
+	char ime[128];
+	char prezime[128];
+	int broj_bodova;
+	float relativan_broj_bodova;
+	Stablo Lijevo;
+	Stablo Desno;
+};
+
+Stablo UcitajIzDatoteke(Stablo);
+Stablo UnosUStablo(Stablo, char*, char*, int);
+void IspisIn(Stablo);
+void IspisPre(Stablo);
+int RelativanBrojBodova(Stablo);
+int main()
+{
+	Stablo S = NULL;
+	int succ = 0;
+
+	S = UcitajIzDatoteke(S);
+
+	printf("Ispis Inorder\n");
+	IspisIn(S);
+
+	succ = RelativanBrojBodova(S);
+
+	printf("Ispis Preorder\n");
+	IspisPre(S);
+
+	return 0;
+}
+Stablo UcitajIzDatoteke(Stablo S)
+{
+	char *imeDatoteke = NULL;
+	FILE*fp = NULL;
+	char *ime = NULL, *prezime = NULL;
+	int brb;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	ime = (char*)malloc(BUFFER * sizeof(char));
+	if (ime == NULL)
+		return NULL;
+
+	prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (prezime == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke,".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+	while (!feof(fp))
+	{
+		fscanf(fp,"%s %s %d",ime,prezime,&brb);
+		S = UnosUStablo(S, ime, prezime, brb);
+		if (S == NULL)
+			return NULL;
+	}
+	fclose(fp);
+	return S;
+}
+Stablo UnosUStablo(Stablo S, char*ime, char*prezime, int brojbod)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct cvor));
+		if (S == NULL)
+			return NULL;
+
+		strcpy(S->ime, ime);
+		strcpy(S->prezime, prezime);
+		S->broj_bodova = brojbod;
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+	}
+	else if (strcmp(S->ime, ime) > 0)
+		S->Lijevo = UnosUStablo(S->Lijevo, ime, prezime, brojbod);
+	else if (strcmp(S->ime,ime) < 0)
+		S->Desno = UnosUStablo(S->Desno, ime, prezime, brojbod);
+	else
+		printf("Element vec postoji\n");
+	return S;
+}
+void IspisIn(Stablo S)
+{
+	if (S != NULL)
+	{
+		IspisIn(S->Lijevo);
+		printf("%s %s %d\n", S->ime, S->prezime, S->broj_bodova);
+		IspisIn(S->Desno);
+	}
+}
+int RelativanBrojBodova(Stablo S)
+{
+	if (S != NULL)
+	{
+		RelativanBrojBodova(S->Lijevo);
+		RelativanBrojBodova(S->Desno);
+
+		S->relativan_broj_bodova = (float)S->broj_bodova / MAX;
+	}
+	return 0;
+}
+void IspisPre(Stablo S)
+{
+	if (S != NULL)
+	{
+		printf("%s %s %d %.2f\n", S->ime, S->prezime, S->broj_bodova,S->relativan_broj_bodova);
+		IspisPre(S->Lijevo);
+		IspisPre(S->Desno);
+	}
+}

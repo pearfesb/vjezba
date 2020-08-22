@@ -1,0 +1,176 @@
+/**
+Napisati program koji za tri različita predmeta čita ime i prezime studenta te njegovu ocjenu.Podaci o
+svakom predmetu se nalaze u odvojenoj datoteci i iz svake datoteke je potrebno kreirati vezanu listu i
+ispisati je.
+a) Nakon toga potrebno je kreirati novu listu koja sadrži imena studenata koji su položili sva tri
+predmeta.
+b) Nadopuniti zadatak pod a) tako da se ispiše nova vezana lista koja osim što sadrži imena
+studenata, sadrži i njihovu prosječnu ocjenu iz ta tri predmeta.
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+
+typedef struct cvor *Lista;
+struct cvor {
+	char *ime;
+	char *prezime;
+	int ocjena;
+	Lista Next;
+};
+
+
+int NovaLista(Lista, Lista, Lista,Lista);
+int CitajIzDatoteke(Lista);
+int Polozena(Lista , char*, char*, int);
+int UnosUListu(Lista,char*,char*,int);
+void Ispis(Lista);
+int main()
+{
+	struct cvor L1;
+	struct cvor L2;
+	struct cvor L3;
+	struct cvor L4;
+
+	L1.Next = NULL;
+	L2.Next = NULL;
+	L3.Next = NULL;
+	L4.Next = NULL;
+	int succ;
+
+	succ = CitajIzDatoteke(&L1);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+	succ = CitajIzDatoteke(&L2);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+	succ = CitajIzDatoteke(&L3);
+	if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+		return succ;
+
+	succ = NovaLista(&L1, &L2, &L3, &L4);
+	if (succ == GRESKAALOKACIJE)
+		return succ;
+	Ispis(L4.Next);
+
+	return 0;
+}
+int CitajIzDatoteke(Lista L)
+{
+	char *imeDatoteke = NULL;
+	FILE *fp = NULL;
+	char *ime = NULL;
+	char *prezime = NULL;
+	int ocjena;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	ime = (char*)malloc(BUFFER * sizeof(char));
+	if (ime == NULL)
+		return GRESKAALOKACIJE;
+
+	prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (prezime == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;
+
+	while (!feof(fp))
+	{
+		fscanf(fp,"%s %s %d",ime,prezime,&ocjena);
+		int succ = UnosUListu(L, ime, prezime, ocjena);
+		if (succ == GRESKAALOKACIJE || succ == NEPOSTOJI)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUListu(Lista L, char* ime, char* prezime, int ocjena)
+{
+	Lista q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+
+	q->ime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->ime == NULL)
+		return GRESKAALOKACIJE;
+
+	q->prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->prezime == NULL)
+		return GRESKAALOKACIJE;
+
+	strcpy(q->ime, ime);
+	strcpy(q->prezime, prezime);
+	q->ocjena = ocjena;
+
+	while (L->Next != NULL)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+	return 0;
+
+}
+int NovaLista(Lista L1, Lista L2, Lista L3,Lista L4)
+{
+	int succ;
+	while (L1->Next != NULL && L2->Next != NULL && L3->Next != NULL)
+	{
+		if (L1->Next->ocjena > 1 && L2->Next->ocjena > 1 && L3->Next->ocjena > 1) 
+		{
+			int prosjek = (L1->Next->ocjena + L2->Next->ocjena + L3->Next->ocjena) / 3;
+			succ = Polozena(L4, L1->Next->ime, L1->Next->prezime, prosjek);
+		}
+		L1 = L1->Next;
+		L2 = L2->Next;
+		L3 = L3->Next;
+
+	}
+	return 0;
+}
+int Polozena(Lista L, char*ime, char*prezime, int prosjek)
+{
+	Lista q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+
+	q->ime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->ime == NULL)
+		return GRESKAALOKACIJE;
+
+	q->prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (q->prezime == NULL)
+		return GRESKAALOKACIJE;
+
+	strcpy(q->ime, ime);
+	strcpy(q->prezime, prezime);
+	q->ocjena = prosjek;
+
+	while (L->Next != NULL)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+
+	return 0;
+}
+void Ispis(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%s %s %d", L->ime, L->prezime, L->ocjena);
+		L = L->Next;
+	}
+}

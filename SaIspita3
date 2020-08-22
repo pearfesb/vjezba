@@ -1,0 +1,138 @@
+/**
+Napisati program koji iz datoteke čita dio teksta, riječ po riječ i unosi u binarno stablo pretraživanja
+(maksimalna duljina riječi 1024 znaka). Ispisati binarno stablo na „inorder“ način.
+Iz binarnog stabla kreirati dvije datoteke, u prvoj se nalaze sve riječi koje počinju samoglasnikom, a u
+drugoj sve riječi koje počinju suglasnikom. Riječi zapisane u datotekama moraju biti sortirane po abecedi.
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+
+typedef struct cvor *Stablo;
+struct cvor {
+	char* rijec;
+	Stablo Lijevo;
+	Stablo Desno;
+};
+
+Stablo UcitajIzDatoteke(Stablo);
+Stablo UnosUStablo(Stablo, char*);
+void IspisIn(Stablo);
+int Pretrazivanje(Stablo, FILE *, FILE *);
+
+
+int main()
+{
+	Stablo S = NULL;
+	FILE *fp1 = NULL;
+	FILE *fp2 = NULL;
+	int succ;
+
+
+	S = UcitajIzDatoteke(S);
+	if (S == NULL)
+		return GRESKAALOKACIJE;
+	IspisIn(S);
+
+	succ = Pretrazivanje(S, fp1, fp2);
+
+	return 0;
+}
+
+Stablo UcitajIzDatoteke(Stablo S)
+{
+	char *imeDatoteke = NULL;
+	FILE*fp = NULL;
+	char *rijec = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	rijec= (char*)malloc(BUFFER * sizeof(char));
+	if (rijec == NULL)
+		return NULL;
+
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s",rijec);
+		S = UnosUStablo(S,rijec);
+		if (S == NULL)
+			return NULL;
+	}
+	fclose(fp);
+	return S;
+}
+Stablo UnosUStablo(Stablo S, char* rijec)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct cvor));
+		if (S == NULL)
+			return NULL;
+		S->rijec = (char*)malloc(BUFFER * sizeof(char));
+		if (S->rijec == NULL)
+			return NULL;
+		strcpy(S->rijec, rijec);
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+	}
+	else if (strcmp(S->rijec,rijec) > 0)
+		S->Lijevo = UnosUStablo(S->Lijevo, rijec);
+	else if (strcmp(S->rijec, rijec) < 0)
+		S->Desno = UnosUStablo(S->Desno, rijec);
+	else
+		printf("Element vec postoji\n");
+	return S;
+}
+void IspisIn(Stablo S)
+{
+	if (S != NULL)
+	{
+		IspisIn(S->Lijevo);
+		printf("%s\n", S->rijec);
+		IspisIn(S->Desno);
+	}
+}
+// ne radi
+int Pretrazivanje(Stablo S,FILE *fp1,FILE *fp2)
+{
+	if (S != NULL)
+	{
+		Pretrazivanje(S->Lijevo,fp1,fp2);
+		Pretrazivanje(S->Desno,fp1,fp2);
+
+		if (*S->rijec == 'a' || *S->rijec == 'e' || *S->rijec == 'i' || *S->rijec == 'o' || *S->rijec == 'u')
+		{
+			fp1 = fopen("samoglasnici.txt", "w");
+			if (fp1 == NULL)
+				return -2;
+			fprintf(fp1, "%s", S->rijec);
+			fclose(fp1);
+		}
+		else
+		{
+			fp2 = fopen("suglasnici.txt", "w");
+			if (fp2 == NULL)
+				return -2;
+			fprintf(fp2, "%s", S->rijec);
+			fclose(fp2);
+		}
+			
+	}
+	return 0;
+	
+}

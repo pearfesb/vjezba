@@ -1,0 +1,155 @@
+/***
+Napisati program kojim se
+a) Slučajnim uzorkom generira 10 brojeva iz opsega od 300 do 700, te ih sprema u binarno stablo
+pretraživanja.Zatim ispišemo to stablo u preorder načinu ispisa.
+b) Iz generiranog stabla pretraživanja izbrisati sve elemente koji su zapisani u proizvoljno
+definiranoj datoteci.
+**/
+//nije do kraja rijesen
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define GRESKAALOKACIJE -1
+#define NEPOSTOJI -2
+#define BUFFER 1024
+
+typedef struct cvor *Stablo;
+struct cvor {
+	int el;
+	Stablo Lijevo;
+	Stablo Desno;
+};
+
+int RandomBroj(int, int);
+Stablo UnosUStablo(Stablo, int,int*);
+void IspisPre(Stablo);
+Stablo BrisiElement(Stablo, int);
+Stablo TraziMin(Stablo);
+int UcitajIzDatoteke(Stablo);
+
+int main()
+{
+	Stablo S = NULL;
+	int random;
+	int brojac = 0;
+	int succ;
+
+	
+	while (brojac < 10)
+	{
+		random = RandomBroj(700, 300);
+		S = UnosUStablo(S, random, &brojac);
+		if (S == NULL)
+			return GRESKAALOKACIJE;
+	}
+	IspisPre(S);
+
+	succ = UcitajIzDatoteke(S);
+
+	IspisPre(S);
+
+	return 0;
+}
+int RandomBroj(int max, int min)
+{
+	return rand() % (max - min) + min;
+}
+Stablo UnosUStablo(Stablo S, int x,int* br)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct cvor));
+		if (S == NULL)
+			return NULL;
+		S->el = x;
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+		(*br)++;
+	}
+	else if (S->el > x)
+		S->Lijevo = UnosUStablo(S->Lijevo, x,br);
+	else if (S->el < x)
+		S->Desno = UnosUStablo(S->Desno, x, br);
+	else
+		printf("Element vec postoji\n");
+	return S;
+}
+void IspisPre(Stablo S)
+{
+	if (S != NULL)
+	{
+		printf("%d\n", S->el);
+		IspisPre(S->Lijevo);
+		IspisPre(S->Desno);
+	}
+}
+int UcitajIzDatoteke(Stablo S)
+{
+	char* imeDatoteke = NULL;
+	FILE* fp = NULL;
+	int broj;
+	int succ;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke,".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NEPOSTOJI;;
+
+	while (!feof(fp))
+	{
+		fscanf(fp,"%d",&broj);
+		S= BrisiElement(S, broj);
+		if (S == NULL)
+			return NEPOSTOJI;
+	}
+	fclose(fp);
+	return 0;
+}
+Stablo BrisiElement(Stablo S, int broj)
+{
+	if (S == NULL)
+	{
+		printf("Element nije dio stabla\n");
+		return NULL;
+	}
+	else if (S->el < broj)
+		S->Desno = BrisiElement(S->Desno, broj);
+	else if (S->el > broj)
+		S->Lijevo = BrisiElement(S->Lijevo, broj);
+
+	if (S->Lijevo != NULL && S->Desno != NULL)
+	{
+		Stablo temp;
+		temp = TraziMin(S->Desno);
+		S->el = temp->el;
+		S->Desno = BrisiElement(S->Desno, S->el);
+	}
+	else
+	{
+		Stablo temp;
+		temp = S;
+		if (NULL == S->Lijevo)
+			S = S->Desno;
+		else S = S->Lijevo;
+			free(temp);
+	}
+	return S;
+}
+Stablo TraziMin(Stablo S)
+{
+	if (NULL == S)
+		return NULL;
+	else if (NULL == S->Desno)
+		return S;
+	else
+		TraziMin(S->Desno);
+}

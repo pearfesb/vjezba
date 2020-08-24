@@ -1,0 +1,112 @@
+/**
+Napisati program koji iz datoteke „text.txt“ čita zadani tekst. Od pročitanih riječi se gradi binarno
+stablo pretraživanja, s tim da ukoliko se pronađe riječ koja se već nalazi u stablu potrebno ju je
+dodati u vezanu listu istih riječi za određeni čvor. Ispisati stablo. Za odabranu riječ ispitat koliko se
+puta ponavlja.
+***/
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+
+typedef struct cvor *Stablo;
+struct cvor {
+	char* rijec;
+	Stablo Lijevo;
+	Stablo Desno;
+	Lista lista;
+};
+
+typedef struct Cvor *Lista;
+struct Cvor {
+	char *rijec;
+	Lista Next;
+};
+Stablo UcitajIzDatoteke(Stablo);
+Stablo UnosUStablo(Stablo, char*);
+Lista UnosUListu(char*);
+int main()
+{
+	return 0;
+}
+Stablo UcitajIzDatoteke(Stablo S)
+{
+	char *imeDatoteke = NULL;
+	char *string = NULL;
+	FILE *fp = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s",imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, ".txt");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp,"%s",string);
+		S = UnosUStablo(S, string);
+		if (S == NULL)
+			return NULL;
+	}
+	fclose(fp);
+	return S;
+}
+Stablo UnosUStablo(Stablo S, char* rijec)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct cvor));
+		if (S == NULL)
+			return NULL;
+
+		S->rijec = (char*)malloc(BUFFER * sizeof(char));
+		if (S->rijec == NULL)
+			return NULL;
+		strcpy(S->rijec, rijec);
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+		S->lista = NULL;
+	}
+	else if (strcmp(S->rijec, rijec) > 0)
+		S->Lijevo = UnosUStablo(S->Lijevo, rijec);
+	else if (strcmp(S->rijec, rijec) < 0)
+		S->Desno = UnosUStablo(S->Desno, rijec);
+	else
+		S->lista = UnosUListu(rijec);
+	return S;
+}
+Lista UnosUListu(char* rijec)
+{
+	Lista head = NULL;
+	Lista temp = NULL;
+	Lista prt = NULL;
+
+	temp = (Lista)malloc(sizeof(struct Cvor));
+	if (temp == NULL)
+		return NULL;
+	temp->Next = NULL;
+	strcpy(temp->rijec, rijec);
+
+	if (head == NULL)
+		head = temp;
+	else
+	{
+		prt = head;
+		while (prt->Next != NULL)
+			prt = prt->Next;
+		prt->Next = temp;
+	}
+	return head;
+}

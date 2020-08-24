@@ -5,7 +5,7 @@ pretraživanja.Zatim ispišemo to stablo u preorder načinu ispisa.
 b) Iz generiranog stabla pretraživanja izbrisati sve elemente koji su zapisani u proizvoljno
 definiranoj datoteci.
 **/
-//nije do kraja rijesen
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
@@ -126,7 +126,7 @@ Stablo BrisiElement(Stablo S, int broj)
 	else if (S->el > broj)
 		S->Lijevo = BrisiElement(S->Lijevo, broj);
 
-	if (S->Lijevo != NULL && S->Desno != NULL)
+	else if (S->Lijevo != NULL && S->Desno != NULL)
 	{
 		Stablo temp;
 		temp = TraziMin(S->Desno);

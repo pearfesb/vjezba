@@ -1,0 +1,134 @@
+/*Napisati program kojim se
+a) Iz datoteke čitaju riječi i spremaju u vezanu listu na način da se riječi slažu po abecednom redu
+obrnutom od abecednog reda.Zatim ispisati tu vezanu listu.
+b) Iz generirane liste ispisati samo one riječi koje se nalaze zapisane u drugoj proizvoljnoj datoteci. */
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+
+typedef struct cvor *Lista;
+struct cvor
+{
+	char *rijec;
+	Lista Next;
+};
+int UcitajIzDatoteke(Lista);
+int UnosUListu(Lista , char *);
+void IspisListe(Lista);
+int UcitajDatoteku(Lista);
+int IspisListe(Lista, char*);
+int main()
+{
+	struct cvor L;
+	L.Next = NULL;
+	int succ;
+
+	succ = UcitajIzDatoteke(&L);
+	
+	IspisListe(L.Next);
+
+	succ = UcitajDatoteku(&L);
+	return 0;
+}
+int UcitajIzDatoteke(Lista L)
+{
+	char *imeDatoteke = NULL;
+	char *string = NULL;
+	FILE *fp = NULL;
+	int succ;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s", string);
+		succ = UnosUListu(L, string);
+		if (succ == GRESKAALOKACIJE)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUListu(Lista L, char *string)
+{
+	Lista q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+
+	q->rijec = (char*)malloc(BUFFER * sizeof(char));
+	if (q->rijec == NULL)
+		return GRESKAALOKACIJE;
+
+	strcpy(q->rijec, string);
+	while (L->Next != NULL && strcmp(L->Next->rijec, string) > 0)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+
+	return 0;
+}
+void IspisListe(Lista L)
+{
+	while (L!= NULL)
+	{
+		printf("%s\n", L->rijec);
+		L = L->Next;
+	}
+}
+int UcitajDatoteku(Lista L)
+{
+	char *imeDatoteke = NULL;
+	char *string = NULL;
+	FILE *fp = NULL;
+	int succ;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s", string);
+		int succ=IspisListe(L, string);
+	}
+}
+int IspisListe(Lista L, char* string)
+{
+	while (L->Next != NULL && strcmp(L->Next->rijec, string) != 0)
+		L = L->Next;
+	if (L->Next == NULL)
+		return NULL;
+	else 
+		printf("%s\n", L->Next->rijec);
+}

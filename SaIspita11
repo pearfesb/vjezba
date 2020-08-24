@@ -23,8 +23,8 @@ struct cvor {
 };
 int UcitajIzDatoteke(Lista);
 void IspisListe(Lista);
-int UnosUListu(Lista , int);
-int PresjekParnih(Lista,Lista,Lista);
+int UnosUListu(Lista, int);
+int PresjekParnih(Lista, Lista, Lista);
 int main()
 {
 	struct cvor L1;
@@ -46,6 +46,7 @@ int main()
 	IspisListe(L2.Next);
 
 	succ = PresjekParnih(&L1, &L2, &L3);
+	printf("\n");
 	IspisListe(L3.Next);
 
 
@@ -69,7 +70,7 @@ int UcitajIzDatoteke(Lista L)
 		return NEMA;
 	while (!feof(fp))
 	{
-		fscanf(fp, "%d",&broj);
+		fscanf(fp, "%d", &broj);
 		int succ = UnosUListu(L, broj);
 		if (succ == GRESKAALOKACIJE)
 			return succ;
@@ -99,27 +100,27 @@ void IspisListe(Lista L)
 {
 	while (L != NULL)
 	{
-		printf("%d\t",L->el);
+		printf("%d\t", L->el);
 		L = L->Next;
 	}
 }
-int PresjekParnih(Lista L1, Lista L2,Lista L3)
+int PresjekParnih(Lista L1, Lista L2, Lista L3)
 {
 	Lista pocetak = L2;
-	while (L1 != NULL)
+	while (L1->Next != NULL)
 	{
-		while (L2 != NULL)
+		while (L2->Next != NULL)
 		{
-			if ((L1->el == L2->el) && (L1->el%2==0 && L2->el%2==0))
-				{
-					int succ = UnosUListu(L3, L2->el);
-					if (succ == NEMA)
-						return succ;
-				}
-				L2 = L2->Next;
+			if ((L1->Next->el == L2->Next->el) && (L1->Next->el % 2 == 0 && L2->Next->el % 2 == 0))
+			{
+				int succ = UnosUListu(L3, L2->Next->el);
+				if (succ == NEMA)
+					return succ;
+			}
+			L2 = L2->Next;
 		}
-			L1 = L1->Next;
-			L2 = pocetak;
+		L1 = L1->Next;
+		L2 = pocetak;
 	}
 	return 0;
 }

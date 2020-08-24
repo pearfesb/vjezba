@@ -14,9 +14,9 @@ puta ponavlja.
 typedef struct cvor *Stablo;
 struct cvor {
 	char* rijec;
-	Stablo Lijevo;
-	Stablo Desno;
-	Lista lista;
+	struct cvor* Lijevo;
+	struct cvor* Desno;
+	struct Cvor* lista;
 };
 
 typedef struct Cvor *Lista;
@@ -25,10 +25,34 @@ struct Cvor {
 	Lista Next;
 };
 Stablo UcitajIzDatoteke(Stablo);
-Stablo UnosUStablo(Stablo, char*);
-Lista UnosUListu(char*);
+Stablo UnosUStablo(Stablo, char*,Lista);
+Lista UnosUListu(char*,Lista);
+void Ispis(Stablo);
+int IspisListe(Stablo,char*,int*);
 int main()
 {
+	Stablo S = NULL;
+	char* rijec = NULL;
+	int brojac = 0;
+	int succ;
+
+	rijec = (char*)malloc(BUFFER * sizeof(char));
+	if (rijec == NULL)
+		return -1;
+
+	S = UcitajIzDatoteke(S);
+
+	Ispis(S);
+	
+	printf("Koju rijec zelite nac?\n");
+	scanf("%s", rijec);
+
+	succ = IspisListe(S, rijec, &brojac);
+
+	printf("Ispisuje se %d elemenata",brojac);
+
+	
+
 	return 0;
 }
 Stablo UcitajIzDatoteke(Stablo S)
@@ -46,24 +70,26 @@ Stablo UcitajIzDatoteke(Stablo S)
 		return NULL;
 
 	printf("unesite ime datoteke\n");
-	scanf("%s",imeDatoteke);
+	scanf("%s", imeDatoteke);
 	strcat(imeDatoteke, ".txt");
 
-	fp = fopen(imeDatoteke, ".txt");
+	fp = fopen(imeDatoteke, "r");
 	if (fp == NULL)
 		return NULL;
+	struct Cvor head;
+	head.Next = NULL;
 
 	while (!feof(fp))
 	{
-		fscanf(fp,"%s",string);
-		S = UnosUStablo(S, string);
+		fscanf(fp, "%s", string);
+		S = UnosUStablo(S, string, &head);
 		if (S == NULL)
 			return NULL;
 	}
 	fclose(fp);
 	return S;
 }
-Stablo UnosUStablo(Stablo S, char* rijec)
+Stablo UnosUStablo(Stablo S, char* rijec,Lista head)
 {
 	if (S == NULL)
 	{
@@ -80,22 +106,28 @@ Stablo UnosUStablo(Stablo S, char* rijec)
 		S->lista = NULL;
 	}
 	else if (strcmp(S->rijec, rijec) > 0)
-		S->Lijevo = UnosUStablo(S->Lijevo, rijec);
+		S->Lijevo = UnosUStablo(S->Lijevo, rijec,head);
 	else if (strcmp(S->rijec, rijec) < 0)
-		S->Desno = UnosUStablo(S->Desno, rijec);
+		S->Desno = UnosUStablo(S->Desno, rijec,head);
 	else
-		S->lista = UnosUListu(rijec);
+	{
+		
+		S->lista = UnosUListu(rijec, head);
+	}
 	return S;
 }
-Lista UnosUListu(char* rijec)
+Lista UnosUListu(char* rijec,Lista head)
 {
-	Lista head = NULL;
 	Lista temp = NULL;
 	Lista prt = NULL;
 
 	temp = (Lista)malloc(sizeof(struct Cvor));
 	if (temp == NULL)
 		return NULL;
+	temp->rijec = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->rijec == NULL)
+		return NULL;
+
 	temp->Next = NULL;
 	strcpy(temp->rijec, rijec);
 
@@ -109,4 +141,34 @@ Lista UnosUListu(char* rijec)
 		prt->Next = temp;
 	}
 	return head;
+}
+void Ispis(Stablo S)
+{
+	if (S != NULL)
+	{
+		Ispis(S->Lijevo);
+		printf("%s\n",S->rijec);
+		Ispis(S->Desno);
+	}
+}
+int IspisListe(Stablo S,char* rijec,int* br)
+{
+	if (S != NULL)
+	{
+		IspisListe(S->Lijevo, rijec,br);
+		IspisListe(S->Desno, rijec,br);
+
+		if (S->rijec == rijec)
+		{
+			Lista q = S->lista;
+			while (q != NULL)
+			{
+				(*br)++;
+				q = q->Next;
+			}
+
+		}
+	}
+	return 0;
+	
 }

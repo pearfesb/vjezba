@@ -1,0 +1,125 @@
+/*Kreirati dvije datoteke i u njih upisati 10 slučajno generiranih brojeva iz opsega od 20 - 35. Svaku od
+datoteka pročitati i spremiti u vezanu listu(kreiraju se dvije vezane liste, npr.L1 i L2).Ispisati ih.
+Iz ove dvije vezane liste se kreiraju dvije nove vezane liste koje sadrže :
+a) presjek parnih članova listi L1 i L2;
+b) uniju neparnih članova listi L1 i L2.
+Kod kreiranja listi pod a) i b) se ne smije koristiti malloc, već uzeti postojeće elemente iz listi L1 i
+L2 i preusmjeriti pokazivače.Ispisati sve četiri liste.
+U listama pod a) i b) ne smije biti duplih vrijednosti i vrijednosti moraju bit složene uzlaznim
+redoslijedom. */
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define GRESKAALOKACIJE -1
+#define NEMA -2
+
+typedef struct cvor *Lista;
+struct cvor {
+	int el;
+	Lista Next;
+};
+int UcitajIzDatoteke(Lista);
+void IspisListe(Lista);
+int UnosUListu(Lista , int);
+int PresjekParnih(Lista,Lista,Lista);
+int main()
+{
+	struct cvor L1;
+	struct cvor L2;
+	struct cvor L3;
+	struct cvor L4;
+	int succ;
+
+	L1.Next = NULL;
+	L2.Next = NULL;
+	L3.Next = NULL;
+	L4.Next = NULL;
+
+	succ = UcitajIzDatoteke(&L1);
+	succ = UcitajIzDatoteke(&L2);
+
+	IspisListe(L1.Next);
+	printf("\n");
+	IspisListe(L2.Next);
+
+	succ = PresjekParnih(&L1, &L2, &L3);
+	IspisListe(L3.Next);
+
+
+	return 0;
+}
+int UcitajIzDatoteke(Lista L)
+{
+	FILE* fp = NULL;
+	char* fileName;
+	int broj;
+
+	fileName = (char*)malloc(1024 * sizeof(char));
+	if (fileName == NULL)
+		return GRESKAALOKACIJE;
+	printf("Unesite ime datoteke\n");
+	scanf("%s", fileName);
+	strcat(fileName, ".txt");
+
+	fp = fopen(fileName, "r");
+	if (fp == NULL)
+		return NEMA;
+	while (!feof(fp))
+	{
+		fscanf(fp, "%d",&broj);
+		int succ = UnosUListu(L, broj);
+		if (succ == GRESKAALOKACIJE)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUListu(Lista L, int el)
+{
+	Lista q;
+	q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+	q->el = el;
+
+	while (L->Next != NULL && L->Next->el > el)
+		L = L->Next;
+	if (L->Next == NULL || L->Next->el != q->el)
+	{
+		q->Next = L->Next;
+		L->Next = q;
+	}
+	if (NULL == L) return NEMA;
+	return 0;
+}
+void IspisListe(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%d\t",L->el);
+		L = L->Next;
+	}
+}
+int PresjekParnih(Lista L1, Lista L2,Lista L3)
+{
+	Lista pocetak = L2;
+	while (L1 != NULL)
+	{
+		while (L2 != NULL)
+		{
+			if ((L1->el == L2->el) && (L1->el%2==0 && L2->el%2==0))
+				{
+					int succ = UnosUListu(L3, L2->el);
+					if (succ == NEMA)
+						return succ;
+				}
+				L2 = L2->Next;
+		}
+			L1 = L1->Next;
+			L2 = pocetak;
+	}
+	return 0;
+}

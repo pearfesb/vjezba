@@ -25,6 +25,7 @@ int UcitajIzDatoteke(Lista);
 void IspisListe(Lista);
 int UnosUListu(Lista, int);
 int PresjekParnih(Lista, Lista, Lista);
+int UnijaNeparnih(Lista, Lista, Lista);
 int main()
 {
 	struct cvor L1;
@@ -46,8 +47,13 @@ int main()
 	IspisListe(L2.Next);
 
 	succ = PresjekParnih(&L1, &L2, &L3);
-	printf("\n");
+	printf("Ispis presjeka\n");
 	IspisListe(L3.Next);
+	
+	succ = UnijaNeparnih(&L1, &L2, &L4);
+	printf("Ispis unije\n");
+	IspisListe(L4.Next);
+
 
 
 	return 0;
@@ -114,7 +120,7 @@ int PresjekParnih(Lista L1, Lista L2, Lista L3)
 			if ((L1->Next->el == L2->Next->el) && (L1->Next->el % 2 == 0 && L2->Next->el % 2 == 0))
 			{
 				int succ = UnosUListu(L3, L2->Next->el);
-				if (succ == NEMA)
+				if (succ == NEMA || succ==GRESKAALOKACIJE)
 					return succ;
 			}
 			L2 = L2->Next;
@@ -123,4 +129,28 @@ int PresjekParnih(Lista L1, Lista L2, Lista L3)
 		L2 = pocetak;
 	}
 	return 0;
+}
+int UnijaNeparnih(Lista L1, Lista L2, Lista L3)
+{
+	while (L1->Next != NULL)
+	{
+		if (L1->Next->el % 2 == 1)
+		{
+			int succ = UnosUListu(L3, L1->Next->el);
+			if (succ == NEMA || succ == GRESKAALOKACIJE)
+				return succ;
+		}
+		L1 = L1->Next;
+
+	}while (L2->Next != NULL)
+	{
+		if (L2->Next->el % 2 == 1)
+		{
+			int succ = UnosUListu(L3, L2->Next->el);
+			if (succ == NEMA || succ == GRESKAALOKACIJE)
+				return succ;
+		}
+		L2 = L2->Next;
+	}
+
 }

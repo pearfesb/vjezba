@@ -1,0 +1,8 @@
+/*Napisati program koji čita iz datoteka podatke o studentima i ispitima, te kreira dvije vezane liste
+struct _Student {
+	char* sifra_studenta; char* ime; char* prezime; char* sifra_ispita; struct _Student
+		* Next;
+};
+struct _Ispit { char* sifra_ispita; char* naziv; struct _Ispit* Next; };
+Potrebno je ispisati koliko je studenata položilo svaki pojedini ispit(po nazivu ispita), te nabrojati koji su
+to studenti.*/

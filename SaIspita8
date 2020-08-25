@@ -1,4 +1,15 @@
 /**
+Napisati program koji:
+a) Iz datoteke „drzave.txt“ čita popis država i njihov ID od pročitanih država izgraditi vezanu listu
+država na sortirani način od početka prema kraju abecede (treba raditi sortirani unos, a ne
+naknadno sortirati). Uz pokazivač na sljedeću državu struktura od koje se gradi vezana lista
+mora sadržavati i pokazivač na stablo gradova koji su u toj državi (trenutno NULL) - za 2
+b) Iz datoteke „gradovi.txt“ pročitati ime grada i ID države u kojoj se nalazi. Pronaći odgovarajuću
+državu u gornjoj listi, te dodati pročitani grad u stablo gradova te države. Za zadanu državu
+ispisati sve njene gradove po abecedi. – za 5
+**/
+
+/**
 Napisati program koji iz datoteke „text.txt“ čita zadani tekst. Od pročitanih riječi se gradi binarno
 stablo pretraživanja, s tim da ukoliko se pronađe riječ koja se već nalazi u stablu potrebno ju je
 dodati u vezanu listu istih riječi za određeni čvor. Ispisati stablo. Za odabranu riječ ispitat koliko se
@@ -10,6 +21,7 @@ puta ponavlja.
 #include <string.h>
 
 #define BUFFER 1024
+#define GRESKAALOKACIJE -1
 
 
 typedef struct cvor *Stablo;
@@ -27,7 +39,7 @@ struct Cvor {
 };
 Stablo UcitajIzDatoteke(Stablo);
 Stablo UnosUStablo(Stablo, char*);
-void UnosUListu(char*, Stablo);
+int UnosUListu(char*, Stablo);
 void Ispis(Stablo);
 int IspisListe(Stablo, char*, int*);
 int main()
@@ -77,8 +89,6 @@ Stablo UcitajIzDatoteke(Stablo S)
 	fp = fopen(imeDatoteke, "r");
 	if (fp == NULL)
 		return NULL;
-	//struct Cvor head;
-	//head.Next = NULL;
 
 	while (!feof(fp))
 	{
@@ -112,17 +122,23 @@ Stablo UnosUStablo(Stablo S, char* rijec)
 		S->Desno = UnosUStablo(S->Desno, rijec);
 	else
 	{
-
-		UnosUListu(rijec, S);
+		int succ = UnosUListu(rijec, S);
+		if (succ == GRESKAALOKACIJE)
+			return succ;
 	}
 	return S;
 }
-void UnosUListu(char* rijec, Stablo S) {
+int UnosUListu(char* rijec, Stablo S) {
 	Lista temp = NULL;
 	Lista prt = NULL;
 
 	temp = (Lista)malloc(sizeof(struct Cvor));
+	if (temp == NULL)
+		return GRESKAALOKACIJE;
+
 	temp->rijec = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->rijec == NULL)
+		return GRESKAALOKACIJE;
 
 	temp->Next = NULL;
 	strcpy(temp->rijec, rijec);
@@ -136,33 +152,8 @@ void UnosUListu(char* rijec, Stablo S) {
 			prt = prt->Next;
 		prt->Next = temp;
 	}
+	return 0;
 }
-/*Lista UnosUListu(char* rijec,Lista head)
-{
-	Lista temp = NULL;
-	Lista prt = NULL;
-
-	temp = (Lista)malloc(sizeof(struct Cvor));
-	if (temp == NULL)
-		return NULL;
-	temp->rijec = (char*)malloc(BUFFER * sizeof(char));
-	if (temp->rijec == NULL)
-		return NULL;
-
-	temp->Next = NULL;
-	strcpy(temp->rijec, rijec);
-
-	if (head == NULL)
-		head = temp;
-	else
-	{
-		prt = head;
-		while (prt->Next != NULL)
-			prt = prt->Next;
-		prt->Next = temp;
-	}
-	return head;
-}*/
 void Ispis(Stablo S)
 {
 	if (S != NULL)

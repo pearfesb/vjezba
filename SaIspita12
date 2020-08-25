@@ -1,0 +1,113 @@
+/**
+Napisati program koji:
+a) Iz datoteke „drzave.txt“ čita popis država i njihov ID od pročitanih država izgraditi vezanu listu
+država na sortirani način od početka prema kraju abecede (treba raditi sortirani unos, a ne
+naknadno sortirati). Uz pokazivač na sljedeću državu struktura od koje se gradi vezana lista
+mora sadržavati i pokazivač na stablo gradova koji su u toj državi (trenutno NULL) - za 2
+b) Iz datoteke „gradovi.txt“ pročitati ime grada i ID države u kojoj se nalazi. Pronaći odgovarajuću
+državu u gornjoj listi, te dodati pročitani grad u stablo gradova te države. Za zadanu državu
+ispisati sve njene gradove po abecedi. – za 5
+**/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+#define GRESKAALOKACIJE -1
+
+
+typedef struct cvor *Lista;
+struct cvor {
+	int id;
+	char *drzava;
+	Lista Next;
+	struct Cvor *stablo;
+
+};
+
+
+
+struct Cvor {
+
+};
+int UcitajIzDatoteke(Lista);
+void IspisListe(Lista);
+int UnosUListu(Lista, int, char*);
+int main()
+{
+	struct cvor L1;
+	L1.Next = NULL;
+
+	int succ = UcitajIzDatoteke(&L1);
+	if (succ == GRESKAALOKACIJE)
+		return succ;
+
+	IspisListe(L1.Next);
+	return 0;
+}
+int UcitajIzDatoteke(Lista L)
+{
+	char *imeDatoteke = NULL;
+	char *string = NULL;
+	FILE *fp = NULL;
+	int id;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return GRESKAALOKACIJE;
+
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%d %s",&id ,string);
+		int succ = UnosUListu(L, id, string);
+		if (succ == GRESKAALOKACIJE)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUListu(Lista L, int id, char* string)
+{
+	Lista q = NULL;
+	q = (Lista)malloc(sizeof(struct cvor));
+	if (q == NULL)
+		return GRESKAALOKACIJE;
+
+	q->drzava = (char*)malloc(BUFFER * sizeof(char));
+	if (q->drzava == NULL)
+		return GRESKAALOKACIJE;
+	strcpy(q->drzava, string);
+	q->id = id;
+	q->stablo = NULL;
+
+	while (L->Next != NULL && strcmp(L->Next->drzava, string) < 0)
+		L = L->Next;
+	q->Next = L->Next;
+	L->Next = q;
+
+	return 0;
+	
+}
+void IspisListe(Lista L)
+{
+	while (L != NULL)
+	{
+		printf("%d %s\n", L->id, L->drzava);
+		L = L->Next;
+	}
+}

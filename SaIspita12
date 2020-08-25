@@ -26,25 +26,48 @@ struct cvor {
 	struct Cvor *stablo;
 
 };
-
-
-
+typedef struct Cvor*Stablo;
 struct Cvor {
+	char* grad;
+	Stablo Lijevo;
+	Stablo Desno;
 
 };
+int UcitajGradoveIzDatoteke(Lista);
 int UcitajIzDatoteke(Lista);
 void IspisListe(Lista);
 int UnosUListu(Lista, int, char*);
+int StvoriStablo(Lista, char*);
+Stablo UnosUStablo(Stablo , char*);
+void IspisGradova(Lista,char*);
+void IspisStabla(Stablo S);
 int main()
 {
 	struct cvor L1;
 	L1.Next = NULL;
+	int succ;
+	char* drzava = NULL;
 
-	int succ = UcitajIzDatoteke(&L1);
+	drzava = (char*)malloc(BUFFER * sizeof(char));
+	if (drzava == NULL)
+		return GRESKAALOKACIJE;
+
+	succ = UcitajIzDatoteke(&L1);
 	if (succ == GRESKAALOKACIJE)
 		return succ;
 
 	IspisListe(L1.Next);
+
+	succ = UcitajGradoveIzDatoteke(L1.Next);
+
+	printf("Upisite drazavu\n");
+	scanf("%s", drzava);
+
+	IspisGradova(L1.Next, drzava);
+
+
+
+
 	return 0;
 }
 int UcitajIzDatoteke(Lista L)
@@ -109,5 +132,109 @@ void IspisListe(Lista L)
 	{
 		printf("%d %s\n", L->id, L->drzava);
 		L = L->Next;
+	}
+}
+int UcitajGradoveIzDatoteke(Lista L)
+{
+	char *imeDatoteke = NULL;
+	char *string = NULL;
+	FILE *fp = NULL;
+	int id;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return GRESKAALOKACIJE;
+
+	string = (char*)malloc(BUFFER * sizeof(char));
+	if (string == NULL)
+		return GRESKAALOKACIJE;
+
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+	Lista pocetak = L;
+	while (!feof(fp))
+	{
+		fscanf(fp, "%d %s", &id, string);
+		while (L!= NULL && L->id != id)
+			L = L->Next;
+		int succ = StvoriStablo(L,string);
+		L = pocetak;
+
+	}
+	fclose(fp);
+	return 0;
+
+}
+int StvoriStablo(Lista L,char* grad)
+{
+	Stablo S = NULL;
+
+	if (L->stablo == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct Cvor));
+		if (S == NULL)
+			return NULL;
+
+		S->grad = (char*)malloc(BUFFER * sizeof(char));
+		if (S->grad == NULL)
+			return NULL;
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+
+		strcpy(S->grad, grad);
+
+		L->stablo = S;
+	}
+	else
+		L->stablo = UnosUStablo(L->stablo,grad);
+		
+	return 0;
+}
+Stablo UnosUStablo(Stablo S,char*grad)
+{
+	if (S == NULL)
+	{
+		S = (Stablo)malloc(sizeof(struct Cvor));
+		if (S == NULL)
+			return NULL;
+
+		S->grad = (char*)malloc(BUFFER * sizeof(char));
+		if (S->grad == NULL)
+			return NULL;
+
+		strcpy(S->grad, grad);
+
+		S->Desno = NULL;
+		S->Lijevo = NULL;
+	}
+	else if (strcmp(S->grad, grad) > 0)
+		S->Lijevo = UnosUStablo(S->Lijevo, grad);
+	else if (strcmp(S->grad, grad) < 0)
+		S->Desno = UnosUStablo(S->Desno, grad);
+	else
+		printf("Element vec postoji\n");
+
+	return S;
+}
+
+void IspisGradova(Lista L,char* drzava)
+{
+	while (L!= NULL && strcmp(L->drzava, drzava) != 0)
+		L = L->Next;
+	IspisStabla(L->stablo);
+}
+void IspisStabla(Stablo S)
+{
+	if (S != NULL)
+	{
+		IspisStabla(S->Lijevo);
+		printf("%s\n", S->grad);
+		IspisStabla(S->Desno);
 	}
 }

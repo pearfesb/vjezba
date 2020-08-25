@@ -1,0 +1,176 @@
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER 1024
+
+typedef struct cvor1 *Lista1;
+struct cvor1
+{
+	char* zupanija;
+	Lista1 Next;
+	struct cvor2 *druga;
+
+};
+typedef struct cvor2 *Lista2;
+struct cvor2
+{
+	char* ime;
+	char* prezime;
+	int telefon;
+	Lista2 Next;
+
+};
+int IspisZupanija(Lista1);
+int UcitajIzdatoteke(Lista1);
+int UnosUListu(Lista1, char*, char*, char*, int);
+int UnosUDruguListu(Lista1 , char*, char* , int);
+int main()
+{
+	struct cvor1 L1;
+	L1.Next = NULL;
+	int succ;
+
+	succ = UcitajIzdatoteke(&L1);
+	if (succ == -1)
+		return succ;
+
+	succ = IspisZupanija(L1.Next);
+
+
+	return 0;
+}
+int UcitajIzdatoteke(Lista1 L1)
+{
+	char *imeDatoteke = NULL;
+	char *ime = NULL;
+	char *prezime = NULL;
+	char *zupanija = NULL;
+	int broj;
+	FILE *fp = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	ime = (char*)malloc(BUFFER * sizeof(char));
+	if (ime == NULL)
+		return NULL;
+	
+	prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (prezime == NULL)
+		return NULL;
+	
+	zupanija = (char*)malloc(BUFFER * sizeof(char));
+	if (zupanija == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return NULL;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s %s %d %s", ime, prezime, &broj, zupanija);
+		int succ = UnosUListu(L1, ime, prezime, zupanija, broj);
+		if (succ == -1)
+			return succ;
+	}
+	fclose(fp);
+	return 0;
+
+}
+int UnosUListu(Lista1 L1,char* ime,char* prezime,char* zupanija,int telefon)
+{
+	Lista1 q;
+	q = (Lista1)malloc(sizeof(struct cvor1));
+	if (q == NULL)
+		return -1;
+
+	q->zupanija = (char*)malloc(BUFFER * sizeof(char));
+	if (q->zupanija == NULL)
+		return -1;
+
+	strcpy(q->zupanija, zupanija);
+	while (L1->Next != NULL && strcmp(L1->Next->zupanija, zupanija) < 0)
+		L1 = L1->Next;
+	q->Next = L1->Next;
+	L1->Next = q;
+	int succ = UnosUDruguListu(L1, ime, prezime, telefon);
+	if (succ == -1)
+		return succ;
+
+	return 0;
+
+
+}
+int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj)
+{
+	Lista2 temp = NULL;
+	Lista2 pom = NULL;
+
+	temp = (Lista2)malloc(sizeof(struct cvor2));
+	if (temp == NULL)
+		return -1;
+	temp->ime = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->ime == NULL)
+		return -1;
+	temp->prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->prezime == NULL)
+		return -1;
+
+	strcpy(temp->ime, ime);
+	strcpy(temp->prezime, prezime);
+	temp->telefon = broj;
+	temp->Next = NULL;
+
+	if (L1->druga == NULL)
+		L1->druga = temp;
+	else
+	{
+		pom = L1->druga;
+		while (pom->Next != NULL)
+			pom = pom->Next;
+		pom->Next = temp;
+	}
+	return 0;
+}
+int IspisZupanija(Lista1 L1)
+{
+
+	char *imeDatoteke = NULL;
+	
+	FILE *fp = NULL;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return NULL;
+
+	printf("unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "w");
+	if (fp == NULL)
+		return NULL;
+
+	while (L1 != NULL)
+	{
+		printf("%s\t", L1->zupanija);
+		Lista2 q = L1->druga;
+		while (q != NULL)
+		{
+			printf("%s %s %d\n",q->ime,q->prezime,q->telefon);
+			q = q->Next;
+		}
+		L1 = L1->Next;
+	}
+	fclose(fp);
+	return 0;
+}

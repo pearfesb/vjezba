@@ -27,6 +27,7 @@ int IspisZupanija(Lista1);
 int UcitajIzdatoteke(Lista1);
 int UnosUListu(Lista1, char*, char*, char*, int);
 int UnosUDruguListu(Lista1 , char*, char* , int);
+int OslobadanjeProstora(Lista1);
 int main()
 {
 	struct cvor1 L1;
@@ -38,6 +39,12 @@ int main()
 		return succ;
 
 	succ = IspisZupanija(L1.Next);
+	if (succ == -1)
+		return succ;
+
+	succ = OslobadanjeProstora(L1.Next);
+	if (succ == 0)
+		printf("Prostor je osloboden");
 
 
 	return 0;
@@ -89,26 +96,36 @@ int UcitajIzdatoteke(Lista1 L1)
 int UnosUListu(Lista1 L1,char* ime,char* prezime,char* zupanija,int telefon)
 {
 	Lista1 q;
-	q = (Lista1)malloc(sizeof(struct cvor1));
-	if (q == NULL)
-		return -1;
-
-	q->zupanija = (char*)malloc(BUFFER * sizeof(char));
-	if (q->zupanija == NULL)
-		return -1;
-
-	strcpy(q->zupanija, zupanija);
 	while (L1->Next != NULL && strcmp(L1->Next->zupanija, zupanija) < 0)
 		L1 = L1->Next;
-	q->Next = L1->Next;
-	L1->Next = q;
-	int succ = UnosUDruguListu(L1, ime, prezime, telefon);
-	if (succ == -1)
-		return succ;
+	if (L1->Next == NULL || strcmp(L1->Next->zupanija, zupanija) != 0)
+	{
+		q = (Lista1)malloc(sizeof(struct cvor1));
+		if (q == NULL)
+			return -1;
+
+		q->zupanija = (char*)malloc(BUFFER * sizeof(char));
+		if (q->zupanija == NULL)
+			return -1;
+
+		strcpy(q->zupanija, zupanija);
+		q->druga = NULL;
+
+		q->Next = L1->Next;
+		L1->Next = q;
+
+		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon);
+		if (succ == -1)
+			return succ;
+	}
+	else
+	{
+		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon);
+		if (succ == -1)
+			return succ;
+	}
 
 	return 0;
-
-
 }
 int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj)
 {
@@ -162,15 +179,33 @@ int IspisZupanija(Lista1 L1)
 
 	while (L1 != NULL)
 	{
-		printf("%s\t", L1->zupanija);
+		fprintf(fp,"%s\n", L1->zupanija);
 		Lista2 q = L1->druga;
 		while (q != NULL)
 		{
-			printf("%s %s %d\n",q->ime,q->prezime,q->telefon);
+			fprintf(fp,"%s %s %d\n",q->ime,q->prezime,q->telefon);
 			q = q->Next;
 		}
 		L1 = L1->Next;
+		fprintf(fp,"\n");
 	}
 	fclose(fp);
+	return 0;
+}
+int OslobadanjeProstora(Lista1 L1)
+{
+	while (L1->Next!= NULL)
+	{
+		Lista2 q;
+		while (L1->druga != NULL)
+		{
+			q = L1->druga;
+			L1->druga = q->Next;
+			free(q);
+		}
+		Lista1 qn = L1->Next;
+		L1->Next = qn->Next;
+		free(qn);
+	}
 	return 0;
 }

@@ -151,7 +151,6 @@ int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj, char* zupanij
 	if (q == NULL)
 	{
 		L1->druga = temp;
-		return 0;
 	}
 	else if(strcmp(L1->druga->prezime,prezime)>0)
 	{
@@ -170,8 +169,6 @@ int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj, char* zupanij
 		temp->Next = q->Next;
 		q->Next = temp;
 	}
-	
-	
 	return 0;
 }
 int IspisZupanija(Lista1 L1)

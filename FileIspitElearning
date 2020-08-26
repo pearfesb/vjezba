@@ -1,0 +1,155 @@
+/*a) Prilikom spremanja studenta u vezanu listu potrebno je studentu dodijeliti orderNum, 
+kao slučajno generirani cijeli broj u rasponu od 1 do 1000. Ispisati listu.
+b) Iz tako kreirane liste potrebno je kreirati novu vezanu listu u kojoj će studenti biti sortirani po orderNum. 
+Ispisati listu. NAPOMENA: Nije dozvoljena nova alokacija elementata pri unosu u novu vezanu listu već je potrebno 
+prebaciti čvorove iz postojeće liste.
+c) Iz sortirane liste kreirati hash tablicu sa zasebnim redovima od 8 (osam) mjesta. Funkcija preslikavanja ključ
+računa kao ostatak cjelobrojnog dijeljenja orderNum s ukupnim brojem elemenata tablice. Studenti s izračunatim ključem
+se spremaju u binarno stablo po broju indexa.
+NAPOMENA: Zatvoriti sve otvorene datoteke, pobrisati svu dinamički alociranu memoriju i mirnim putem prekinuti rad 
+programa. Programski kod napisati kozistentno, uredno te odvojeno u funkcije.*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#define ERROR -1
+#define MAX 1024
+#define MAX_LINE_SIZE 4096
+
+struct _student;
+typedef struct _student *StudentNode;
+typedef struct _student {
+	int brojIndeksa; // iz datoteke
+	char *ime; // iz datoteke
+	char *prezime; // iz datoteke
+	int orderNum; // slucajno generiran broj izmedu 1 i 1000
+	StudentNode next;
+} Student;
+
+int UnosUListuIzDatoteke(StudentNode, char *);
+int PronalazenjeRandomBroja();
+void UnosUListu(StudentNode, char *, char *, int);
+void IspisListe(StudentNode);
+void PrebacivanjePrveListeUDruguSortirano(StudentNode, StudentNode);
+int main() {
+
+	Student s;
+	s.next = NULL;
+	Student s2;
+	s2.next = NULL;
+
+	int succ = 0;
+	
+	char *imeDatoteke = NULL;
+	imeDatoteke = (char *)malloc(MAX * sizeof(char));
+	if (imeDatoteke == NULL) {
+		printf("Greska tokom otvaranja datoteke\n");
+		return ERROR;
+	}
+	printf("Unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	if (strlen(imeDatoteke) == 0) {
+		printf("Datoteka mora imati naziv. Greska\n");
+		return ERROR;
+	}
+	strcat(imeDatoteke, ".txt");
+
+	succ = UnosUListuIzDatoteke(&s, imeDatoteke);
+	
+	IspisListe(s.next);
+	printf("\n");
+	PrebacivanjePrveListeUDruguSortirano(&s, &s2);
+	printf("Ispis prve liste\n");
+	IspisListe(s.next);
+	printf("\n");
+	printf("Ispis druge liste\n");
+	IspisListe(s2.next);
+}
+int UnosUListuIzDatoteke(StudentNode S, char *imeDatoteke) {
+
+	char *ime;
+	char *prezime;
+	int a = 0, uspijeh = 0;
+	FILE *fp;
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL) {
+		printf("Greska prilikom otvaranja datoteke\n");
+		return ERROR;
+	}
+	ime = (char *)malloc(MAX * sizeof(char));
+	if (ime == NULL) {
+		return ERROR;
+	}
+	prezime = (char *)malloc(MAX * sizeof(char));
+	if (prezime == NULL) {
+		return ERROR;
+	}
+	while (!feof(fp)) {
+		fscanf(fp, "%d %s %s", &a, ime, prezime);
+		UnosUListu(S, ime, prezime, a);
+	}
+	return uspijeh;
+}
+int PronalazenjeRandomBroja() {
+
+	return rand() % (1000 - 1) + 1;
+}
+void UnosUListu(StudentNode S, char *ime, char *prezime, int x) {
+
+	while (S->next != NULL)
+		S = S->next;
+	StudentNode Q;
+	Q = (StudentNode)malloc(sizeof(struct _student));
+	if (Q == NULL) {
+		printf("Greska prilikom alociranja memorije za novi cvor\n");
+		return;
+	}
+	Q->ime = (char *)malloc(MAX * sizeof(char));
+	if (Q->ime == NULL) 
+		return;
+	Q->prezime = (char *)malloc(MAX * sizeof(char));
+	if (Q->prezime == NULL) 
+		return;
+	strcpy(Q->ime, ime);
+	strcpy(Q->prezime, prezime);
+	Q->brojIndeksa = x;
+	Q->orderNum = PronalazenjeRandomBroja();
+	S->next = Q;
+	Q->next = NULL;
+
+}
+void IspisListe(StudentNode S) {
+
+	while (S != NULL) {
+		printf("%d %s %s %d\n", S->brojIndeksa, S->ime, S->prezime, S->orderNum);
+		S = S->next;
+	}
+}
+void PrebacivanjePrveListeUDruguSortirano(StudentNode x, StudentNode y) {
+	
+	int a = 0;
+	StudentNode temp;
+	StudentNode pom;
+	pom = y;
+	temp = (StudentNode)malloc(sizeof(struct _student));
+	temp->next = NULL;
+
+	while (x->next != NULL) {
+		temp = x->next;
+		x->next = x->next->next;
+		a = temp->orderNum;
+		while ((y->next != NULL) && (y->next->orderNum < a))
+			y = y->next;
+		if ((y->next != NULL) && (y->next->orderNum == a)) {
+			PrebacivanjePrveListeUDruguSortirano(x, temp);
+		}
+		else {
+			temp->next = y->next;
+			y->next = temp;
+		}
+		y = pom;
+	}
+	free(temp);
+}

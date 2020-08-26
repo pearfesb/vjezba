@@ -26,8 +26,9 @@ struct cvor2
 int IspisZupanija(Lista1);
 int UcitajIzdatoteke(Lista1);
 int UnosUListu(Lista1, char*, char*, char*, int);
-int UnosUDruguListu(Lista1 , char*, char* , int);
+int UnosUDruguListu(Lista1 , char*, char* , int,char*);
 int OslobadanjeProstora(Lista1);
+int PozivniBroj(int, char*);
 int main()
 {
 	struct cvor1 L1;
@@ -114,23 +115,22 @@ int UnosUListu(Lista1 L1,char* ime,char* prezime,char* zupanija,int telefon)
 		q->Next = L1->Next;
 		L1->Next = q;
 
-		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon);
+		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon,zupanija);
 		if (succ == -1)
 			return succ;
 	}
 	else
 	{
-		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon);
+		int succ = UnosUDruguListu(L1->Next, ime, prezime, telefon,zupanija);
 		if (succ == -1)
 			return succ;
 	}
 
 	return 0;
 }
-int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj)
+int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj, char* zupanija)
 {
 	Lista2 temp = NULL;
-	Lista2 pom = NULL;
 
 	temp = (Lista2)malloc(sizeof(struct cvor2));
 	if (temp == NULL)
@@ -144,18 +144,34 @@ int UnosUDruguListu(Lista1 L1, char* ime, char* prezime, int broj)
 
 	strcpy(temp->ime, ime);
 	strcpy(temp->prezime, prezime);
-	temp->telefon = broj;
+	temp->telefon = PozivniBroj(broj, zupanija);
 	temp->Next = NULL;
 
-	if (L1->druga == NULL)
+	Lista2 q = L1->druga;
+	if (q == NULL)
+	{
 		L1->druga = temp;
+		return 0;
+	}
+	else if(strcmp(L1->druga->prezime,prezime)>0)
+	{
+		L1->druga = temp;
+		temp->Next = q;
+	}
 	else
 	{
-		pom = L1->druga;
-		while (pom->Next != NULL)
-			pom = pom->Next;
-		pom->Next = temp;
+		while (q->Next != NULL && strcmp(q->Next->prezime, prezime) < 0)
+			q = q->Next;
+		if (q->Next != NULL && strcmp(q->Next->prezime, prezime) == 0)
+		{
+			while (strcmp(q->Next->ime, ime) < 0)
+				q = q->Next; 
+		}
+		temp->Next = q->Next;
+		q->Next = temp;
 	}
+	
+	
 	return 0;
 }
 int IspisZupanija(Lista1 L1)
@@ -208,4 +224,20 @@ int OslobadanjeProstora(Lista1 L1)
 		free(qn);
 	}
 	return 0;
+}
+int PozivniBroj(int broj, char*zupanija)
+{
+	if (strcmp(zupanija,"Zagrebacka")==0)
+		broj = 23000000 + broj;
+	else if (strcmp(zupanija,"Splitsko-Dalmatinska")==0)
+		broj = 21000000 + broj;
+	else if (strcmp(zupanija,"Istarska")==0)
+		broj = 24000000 + broj;
+	else if (strcmp(zupanija,"Dubrovacko-Neretvanska")==0)
+		broj = 20000000 + broj;
+	else
+		broj = 22000000 + broj;
+
+	return broj;
+	
 }

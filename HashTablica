@@ -1,0 +1,209 @@
+/***
+Napisati kod koji za zadane podatke studenata (maticni broj, ime i prezime)
+pravi hash tablicu sa zasebnim redovima. Tablica ima 11 mjesta,
+a funkcija za preslikavanje kljuc racuna da se zbraja ASCII vrijednost
+prvih pet slova prezimena i zatim racuna ostatak cjelobrojnog dijeljenja
+te vrijednosti s velicinom tablice. Studenti s istim kljucem se pohranjuju u
+vezanu listu sortiranu po prezimenima i imenima.
+Kada se tablica izgradi treba ispisati cijelu tablicu
+(naglasiti na kojem kljucu se nalaze koji podaci) te ponuditi mogucnost da
+se za odredenog studenta (prezime i ime) ispi�e njegov maticni broj.
+*/
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+typedef struct cvor *Lista;
+struct cvor {
+	char *ime;
+	char *prezime;
+	int mat_broj;
+	Lista Next;
+
+};
+typedef struct hash *Hash;
+struct hash{
+	int el;
+	struct cvor *lista;
+};
+
+#define HASH_SIZE 11
+#define BUFFER 1024
+
+int UcitavanjaIzDatoteke(Hash);
+int UnosUHash(Hash , char*, char*, int);
+int UnesiUListu(Hash , char *, char *, int);
+int StvaranjeKljuca(char*);
+void Ispis(Hash);
+int OslobadanjeProstora(Hash);
+int OslobadanjeProstora(Hash);
+
+int main()
+{
+	Hash H = NULL;
+	int i = 0;
+	int succ;
+
+	H = (Hash)malloc(HASH_SIZE * sizeof(struct hash));
+	if (H == NULL)
+		return -1;
+
+	while (i < HASH_SIZE)
+	{
+		H[i].el = i;
+		H[i].lista = NULL;
+		i++;
+	}
+	succ = UcitavanjaIzDatoteke(H);
+
+	Ispis(H);
+	succ = OslobadanjeProstora(H);
+	if (succ == 0)
+		printf("Osloboden je prostor");
+
+	return 0;
+}
+int UcitavanjaIzDatoteke(Hash H)
+{
+	int succ = 0;
+	char* fileName = NULL;
+	char* ime = NULL;
+	char* prezime = NULL;
+	FILE* fp = NULL;
+	int br = 0;
+
+	fileName = (char*)malloc(sizeof(char) * BUFFER);
+	if (fileName == NULL)
+		return -1;
+
+	ime = (char*)malloc(sizeof(char) * BUFFER);
+	if (ime == NULL)
+		return -1;
+
+	prezime = (char*)malloc(sizeof(char) * BUFFER);
+	if (prezime == NULL)
+		return -1;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", fileName);
+	strcat(fileName, ".txt");
+
+	fp = fopen(fileName, "r");
+	if (fp == NULL)
+		return -2;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s %s %d", ime, prezime, &br);
+		succ = UnosUHash(H, ime, prezime, br);
+	}
+	fclose(fp);
+	return 0;
+}
+int UnosUHash(Hash H, char*ime, char*prezime, int br)
+{
+	int kljuc = StvaranjeKljuca(prezime);
+
+	UnesiUListu(&H[kljuc], ime, prezime, br);
+	return 0;
+}
+int StvaranjeKljuca(char* prezime)
+{
+	int i = 0;
+	int sum = 0;
+
+	while (i < HASH_SIZE && i < 5)
+	{
+		sum += prezime[i];
+		i++;
+	}
+	return sum % HASH_SIZE;
+}
+int UnesiUListu(Hash H, char *ime, char *prezime, int br)
+{
+	Lista temp = NULL;
+	Lista pom = NULL;
+	temp = (Lista)malloc(sizeof(struct cvor));
+	if (temp == NULL)
+		return NULL;
+
+	temp->ime = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->ime == NULL)
+		return NULL;
+
+	temp->prezime = (char*)malloc(BUFFER * sizeof(char));
+	if (temp->prezime == NULL)
+		return NULL;
+
+	strcpy(temp->ime, ime);
+	strcpy(temp->prezime, prezime);
+	temp->mat_broj = br;
+	temp->Next = NULL;
+
+	pom = H->lista;
+
+	if (H->lista == NULL)
+		H->lista = temp;
+	else if (pom->Next == NULL && strcmp(pom->prezime, prezime) < 0)
+	{
+		temp->Next = pom;
+		H->lista = temp;
+	}
+	
+	else
+	{
+		while (pom != NULL && strcmp(pom->prezime, prezime) > 0)
+			pom = pom->Next;
+
+		if (pom != NULL && strcmp(pom->prezime, prezime) == 0)
+		{
+			while (pom->Next != NULL && strcmp(pom->prezime, prezime) == 0 && strcmp(pom->ime, ime) < 0)
+				pom = pom->Next;
+		}
+		if (pom->Next != NULL && strcmp(pom->Next->prezime, prezime) == 0 && strcmp(pom->Next->ime, ime) == 0)
+		{
+			pom->Next->mat_broj += br;
+			return 0;
+		}
+		temp->Next = pom->Next;
+		pom->Next = temp;
+	}
+
+	return 0;
+}
+void Ispis(Hash H)
+{
+	int i = 0;
+	while (i < HASH_SIZE)
+	{
+		printf("ispisuje se %d redak\n",H[i].el);
+		Lista q = H[i].lista;
+		while (q != NULL)
+		{
+			printf("%s %s %d\n", q->ime, q->prezime, q->mat_broj);
+			q = q->Next;
+		}
+		i++;
+	}
+}
+int OslobadanjeProstora(Hash H)
+{
+	int i = 0;
+	while (i < HASH_SIZE)
+	{
+		Lista q;
+		while (H[i].lista != NULL)
+		{
+			q = H[i].lista;
+			H[i].lista = q->Next;
+			free(q);
+		}
+		i++;
+	}
+	free(H);
+	return 0;
+}

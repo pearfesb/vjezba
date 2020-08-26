@@ -2,10 +2,10 @@
 kao slučajno generirani cijeli broj u rasponu od 1 do 1000. Ispisati listu.
 b) Iz tako kreirane liste potrebno je kreirati novu vezanu listu u kojoj će studenti biti sortirani po orderNum. 
 Ispisati listu. NAPOMENA: Nije dozvoljena nova alokacija elementata pri unosu u novu vezanu listu već je potrebno 
-prebaciti čvorove iz postojeće liste.
+prebaciti čvorove iz postojeće liste.  (ne radi kako triba)
 c) Iz sortirane liste kreirati hash tablicu sa zasebnim redovima od 8 (osam) mjesta. Funkcija preslikavanja ključ
 računa kao ostatak cjelobrojnog dijeljenja orderNum s ukupnim brojem elemenata tablice. Studenti s izračunatim ključem
-se spremaju u binarno stablo po broju indexa.
+se spremaju u binarno stablo po broju indexa. (nisam napisala)
 NAPOMENA: Zatvoriti sve otvorene datoteke, pobrisati svu dinamički alociranu memoriju i mirnim putem prekinuti rad 
 programa. Programski kod napisati kozistentno, uredno te odvojeno u funkcije.*/
 

@@ -1,0 +1,180 @@
+#define _CRT_SECURE_NO_WARNINGS
+//me radi
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define HASH_SIZE 23
+#define BUFFER 1024
+
+typedef struct hash *Hash;
+struct hash {
+	int el;
+	struct student * lista;
+};
+typedef struct student *Lista;
+struct student {
+	char *ime;
+	char *prezime;
+	int ocjena;
+	int ects;
+	Lista Next;
+};
+
+int UcitajIzDatoteke(Hash);
+Lista StvaranjeCvora(char*, char*, int, int);
+int UnosUHash(Hash, Lista);
+int StvaranjeKljuca(Lista);
+int UnosUListu(Hash, Lista);
+void Ispis(Hash);
+
+int main()
+{
+	Hash H;
+	int i = 0;
+	int succ;
+
+	H = (Hash)malloc(HASH_SIZE * sizeof(struct hash));
+	if (H == NULL)
+		return -1;
+	while (i < HASH_SIZE)
+	{
+		H[i].el = i;
+		H[i].lista = NULL;
+		i++;
+	}
+
+	succ = UcitajIzDatoteke(H);
+
+	Ispis(H);
+
+	return 0;
+}
+int UcitajIzDatoteke(Hash H)
+{
+	char *imeDatoteke = NULL;
+	FILE* fp = NULL;
+	int ocjena;
+	int ects;
+	Lista student;
+
+	imeDatoteke = (char*)malloc(BUFFER * sizeof(char));
+	if (imeDatoteke == NULL)
+		return -1;
+	
+
+	student = (Lista)malloc(sizeof(struct student));
+	if (student == NULL)
+		return NULL;
+	student->ime = (char*)malloc(sizeof(char));
+	if (student->ime == NULL)
+		return NULL;
+	student->prezime = (char*)malloc(sizeof(char));
+	if (student->prezime == NULL)
+		return NULL;
+
+	printf("Unesite ime datoteke\n");
+	scanf("%s", imeDatoteke);
+	strcat(imeDatoteke, ".txt");
+
+	fp = fopen(imeDatoteke, "r");
+	if (fp == NULL)
+		return -2;
+
+	while (!feof(fp))
+	{
+		fscanf(fp, "%s %s %d %d",student->ime, student->prezime,&ocjena, &ects);
+		student->ocjena = ocjena * ects;
+		student->ects = ects;
+		student->Next = NULL;
+		int succ = UnosUHash(H, student);
+	}
+	fclose(fp);
+	return 0;
+
+}
+/*Lista StvaranjeCvora(char * ime, char* prezime, int ocjena, int ects)
+{
+	Lista q = NULL;
+	q = (Lista)malloc(sizeof(struct student));
+	if (q == NULL)
+		return NULL;
+	q->ime = (char*)malloc(sizeof(char));
+	if (q->ime == NULL)
+		return NULL;
+	q->prezime = (char*)malloc(sizeof(char));
+	if (q->prezime == NULL)
+		return NULL;
+	strcpy(q->ime, ime);
+	strcpy(q->prezime, prezime);
+	q->ocjena = ocjena * ects;
+	q->ects = ects;
+	q->Next = NULL;
+	return q;
+}*/
+int UnosUHash(Hash H, Lista L)
+{
+	int kljuc = StvaranjeKljuca(L);
+
+	int succ = UnosUListu(&H[kljuc], L);
+	return 0;
+}
+int StvaranjeKljuca(Lista L)
+{
+	int i = 0;
+	int sum = 0;
+
+	while (i < HASH_SIZE && i < 3)
+	{
+		sum += L->ime[i];
+		sum += L->prezime[i];
+		i++;
+	}
+	return sum % HASH_SIZE;
+}
+int UnosUListu(Hash H, Lista L)
+{
+	Lista temp = H->lista;
+	if (H->lista == NULL)
+		H->lista = L;
+	else if (temp->Next==NULL && strcmp(temp->prezime, L->prezime) < 0)
+	{
+		L->Next = temp;
+		H->lista = L;
+	}
+	else
+	{
+		while (temp != NULL && strcmp(temp->prezime, L->prezime) > 0)
+			temp = temp->Next;
+		if (temp != NULL && strcmp(temp->prezime, L->prezime) == 0)
+		{
+			while (temp->Next != NULL && strcmp(temp->prezime, L->prezime) == 0 && strcmp(temp->ime, L->ime) > 0)
+				temp = temp->Next;
+		}
+		if (temp->Next != NULL && strcmp(temp->Next->prezime, L->prezime) == 0 && strcmp(temp->Next->ime, L->ime) == 0)
+		{
+			temp->ects += L->ects;
+			temp->ocjena += L->ocjena*L->ects;
+			free(L);
+			return 0;
+		}
+		L->Next = temp->Next;
+		temp->Next = L;
+	}
+	return 0;
+}
+void Ispis(Hash H)
+{
+	int i = 0;
+	while (i < HASH_SIZE)
+	{
+		printf("Ispisuje se %d redak\n", H[i].el);
+		Lista q = H[i].lista;
+		while (q != NULL)
+		{
+			printf("%s %s %d %d\n", q->ime, q->prezime, q->ocjena, q->ects);
+			q = q->Next;
+		}
+		i++;
+	}
+}

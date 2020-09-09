@@ -2,8 +2,10 @@
 svakom od njih dodijeliti redni broj od 0-19.
 a) Nakon toga treba generirati pet slučajnih brojeva iz opsega 0-19 (voditi računa da se ne pojavi
 isti broj više puta) i elemente gornje liste s tim rednim brojem postaviti na početak liste. Ispisati
-te brojeve te novu listu s rednim brojevima. */ 
-// ovo je samo za dva
+te brojeve te novu listu s rednim brojevima. 
+b) Izmijeniti gornji zadatak tako da iz postojeće liste nova formira na način da se elementi iz
+postojeće liste prebace po redoslijedu generiranja rednih brojeva */  
+
 
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
@@ -41,11 +43,11 @@ int main() {
 	int *niz;
 	niz = (int *)malloc(5 * sizeof(int));
 
-	*(niz) = Random(0, 5);
+	*(niz) = Random(0, 19);
 	for (int i = 1; i < 5; i++) {
 		do {
 			a = 0;
-			broj = Random(0, 5);
+			broj = Random(0, 19);
 			for (int j = 0; j < i; j++) {
 				if (*(niz + j) == broj)
 					a++;
@@ -92,9 +94,10 @@ void IspisListe(Pozicija S) {
 		S = S->next;
 	}
 }
+// za rijesit pod b samo izminit kod u komentarima
 int SlaganjeListe(int *niz, Pozicija S) {
 	
-	int i = 0;
+	int i = 0;  // int i = 4;
 	Pozicija q;
 	q = S;
 	
@@ -103,7 +106,7 @@ int SlaganjeListe(int *niz, Pozicija S) {
 	if (temp == NULL)
 		return GRESKA;
 
-	while (i != 5) {
+	while (i != 5) {  // while(i != -1)
 		while (S->next != NULL) {
 			if (S->next->redniBroj == *(niz + i) && S->next != NULL) {
 				temp = S->next;
@@ -111,7 +114,7 @@ int SlaganjeListe(int *niz, Pozicija S) {
 			}
 			S = S->next;
 		}
-		i++;
+		i++;  // i--
 		S = q;
 		temp->next = S->next;
 		S->next = temp;

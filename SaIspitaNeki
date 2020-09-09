@@ -1,0 +1,121 @@
+/*Napisati program koji generira 20 slučajnih brojeva iz opsega 100 – 150 i njih spremiti u vezanu listu i
+svakom od njih dodijeliti redni broj od 0-19.
+a) Nakon toga treba generirati pet slučajnih brojeva iz opsega 0-19 (voditi računa da se ne pojavi
+isti broj više puta) i elemente gornje liste s tim rednim brojem postaviti na početak liste. Ispisati
+te brojeve te novu listu s rednim brojevima. */ 
+// ovo je samo za dva
+
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
+#define GRESKA -1
+
+
+typedef struct _struktura *Pozicija;
+struct _struktura {
+	int randomBroj;
+	int redniBroj;
+	Pozicija next;
+};
+void UnosUListu(Pozicija, int);
+int Random(int, int);
+void IspisListe(Pozicija);
+int SlaganjeListe(int *, Pozicija);
+
+int main() {
+
+	srand(time(NULL));
+	int a = 0, broj = 0;
+
+	struct _struktura S;
+	S.next = NULL;
+
+	for (int i = 0; i < 20; i++) 
+		UnosUListu(&S, i);
+
+	printf("Random broj\tRedni Broj\n");
+	IspisListe(S.next);
+
+	int *niz;
+	niz = (int *)malloc(5 * sizeof(int));
+
+	*(niz) = Random(0, 5);
+	for (int i = 1; i < 5; i++) {
+		do {
+			a = 0;
+			broj = Random(0, 5);
+			for (int j = 0; j < i; j++) {
+				if (*(niz + j) == broj)
+					a++;
+			}
+		} while (a != 0);
+		*(niz + i) = broj;
+	}
+
+	printf("Random brojevi;\n");
+	for (int i = 0; i < 5; i++) {
+		printf("%d\n", *(niz + i));
+	}
+
+	int uspijeh = SlaganjeListe(niz, &S);
+	if (uspijeh != 1)
+		return GRESKA;
+
+	printf("\n");
+	printf("Random broj\tRedni Broj\n");
+	IspisListe(S.next);
+	return 0;
+}
+void UnosUListu(Pozicija S, int x) {
+
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct _struktura));
+	if (q == NULL)
+		return;
+
+	q->randomBroj = Random(100, 150);
+	q->redniBroj = x;
+
+	while (S->next != NULL)
+		S = S->next;
+	S->next = q;
+	q->next = NULL;
+}
+int Random(int a, int b) {
+	return rand() % (b - a) + a;
+}
+void IspisListe(Pozicija S) {
+	while (S != NULL) {
+		printf("  %d\t\t%d\n", S->randomBroj, S->redniBroj);
+		S = S->next;
+	}
+}
+int SlaganjeListe(int *niz, Pozicija S) {
+	
+	int i = 0;
+	Pozicija q;
+	q = S;
+	
+	Pozicija temp;
+	temp = (Pozicija)malloc(sizeof(struct _struktura));
+	if (temp == NULL)
+		return GRESKA;
+
+	while (i != 5) {
+		while (S->next != NULL) {
+			if (S->next->redniBroj == *(niz + i) && S->next != NULL) {
+				temp = S->next;
+				S->next = S->next->next;
+			}
+			S = S->next;
+		}
+		i++;
+		S = q;
+		temp->next = S->next;
+		S->next = temp;
+	}
+
+	return 1;
+}

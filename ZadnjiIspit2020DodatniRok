@@ -1,0 +1,107 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h> // ovu biblioteku ukljucujes kada zelis koristit srand();
+#define MAX 30
+#define GRESKA -1
+#define NULL 0
+
+typedef struct _struktura *Pozicija; // struktura ti mora imat dvi int varijable, jednu za brojeve i jednu za ponavljanja
+struct _struktura {
+	int x;
+	int brojPonavljanja;
+	Pozicija next;
+};
+void UnosUListu(Pozicija, int);
+int Random(int, int);
+void IspisListe(Pozicija);
+int SredivanjeListe(Pozicija);
+
+int main() {
+
+	srand(time(NULL));  // ovo omgucava da ce se svaki put kad upalis novi rezultat dobit novi razliciti brojevi za random
+
+	int *niz;  // pomocni niz
+	niz = (int *)malloc(MAX * sizeof(int)); // alociras sa 30 mista jer ti toliko ima brojeva
+	if (niz == NULL)
+		return GRESKA;
+
+	
+	struct _struktura s;  // inicijalizacija strukture u mainu
+	s.next = NULL;
+	
+	for (int i = 0; i < 30; i++) {  // vrtis for petlju za svaki clan niza, svaki put ce bit novi random broj
+		*(niz + i) = Random(120, 150);
+		UnosUListu(&s, *(niz + i)); // ubacujes taj clan niza u funkciju, on ce bit broj koji je random
+		
+	}
+
+	printf("Lista prije prepravljanja\n");
+	IspisListe(s.next);
+
+	int uspijeh = SredivanjeListe(&s);
+	if (uspijeh < 0)
+		return GRESKA;
+
+	printf("\n");
+	printf("Lista nakon sredivanja:\n");
+	IspisListe(s.next);
+
+	free(niz);
+
+	return 0;
+}
+int Random(int a, int b) {
+	return rand() % (b - a) + a;  // rand funkcija univerzalna
+}
+void UnosUListu(Pozicija S, int x) {
+
+	Pozicija q;
+	q = (Pozicija)malloc(sizeof(struct _struktura));
+	if (q == NULL)
+		return;
+	
+	q->x = x;  // ovde postavljas onaj random broj sta si ga dobila
+	q->brojPonavljanja = 0;  // postavljas svaki broj ponavljanja na nulu za pocetak pa ces ga minjat kasnije;
+	
+	while (S->next != NULL)
+		S = S->next;
+
+	S->next = q;
+	q->next = NULL;
+
+}
+void IspisListe(Pozicija S) {
+	while (S != NULL) {
+		printf("%d-%d\t", S->x, S->brojPonavljanja);
+		S = S->next;
+	}
+}
+int SredivanjeListe(Pozicija S) {
+
+	Pozicija temp; // radis pomocnu varijablu koja ce kasnije bit fiksacija na prvi clan liste te se pomicat kroz while petlje
+	temp = (Pozicija)malloc(sizeof(struct _struktura));
+	if (temp == NULL)
+		return GRESKA;
+
+	temp = S->next; // temp je sada prvi clan liste
+	S = S->next; // listu prebacujemo sa heada na prvi clan liste
+
+	while (temp->next != NULL) {  // ovu while petlju vrtis sve dok fiksacija ne dode do kraja 
+		while (S->next != NULL) {  // ovde svaki put vrtis listu
+			if (S->next != NULL && temp->x == S->next->x) { // ovde ide usporedba fiksacije sa svakim clanom liste do kraja
+				temp->brojPonavljanja += 1;  // ako je usporedba dobra, broj ponavljanja se povecava za 1
+				S->next = S->next->next; // brise se taj clan iz liste
+				if (S->next != NULL && temp->x == S->next->x) // ovaj if osigurava da se ubrajaju i susjedi jer ih se priskace inace
+					temp->brojPonavljanja += 1; 
+			}
+			else {
+				S = S->next;
+			}
+		}
+	temp = temp->next; // kada dode do kraja liste, fiksacija se pomice za jedan unaprijed i sve tako do kraja 
+	S = temp; // lista se takoder pomice jer je bespotrebno usporedivat opet sve brojeve
+	}
+
+	return 0;
+}
